@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ReservationInfoMapper">
+
+    <!-- 基础字段映射 -->
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.ReservationInfo">
+        <id column="reserve_id" property="reserveId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="reserve_date" property="reserveDate"/>
+        <result column="reserve_time" property="reserveTime"/>
+        <result column="consult_room" property="consultRoom"/>
+        <result column="consult_topic" property="consultTopic"/>
+        <result column="reserve_status" property="reserveStatus"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 新增预约记录 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reserveId">
+        INSERT INTO reservation_info (
+            student_id,
+            counselor_id,
+            reserve_date,
+            reserve_time,
+            consult_room,
+            consult_topic,
+            reserve_status,
+            cancel_reason,
+            create_time,
+            update_time
+        ) VALUES (
+                     #{studentId},
+                     #{counselorId},
+                     #{reserveDate},
+                     #{reserveTime},
+                     #{consultRoom},
+                     #{consultTopic},
+                     #{reserveStatus},
+                     #{cancelReason},
+                     NOW(),
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 根据ID查询预约记录 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            reservation_info
+        WHERE
+            reserve_id = #{reserveId}
+    </select>
+
+    <!-- 更新预约记录 -->
+    <update id="updateById">
+        UPDATE reservation_info
+        SET
+            student_id = #{studentId},
+            counselor_id = #{counselorId},
+            reserve_date = #{reserveDate},
+            reserve_time = #{reserveTime},
+            consult_room = #{consultRoom},
+            consult_topic = #{consultTopic},
+            reserve_status = #{reserveStatus},
+            cancel_reason = #{cancelReason},
+            update_time = NOW()
+        WHERE
+            reserve_id = #{reserveId}
+    </update>
+
+    <!-- 学生查询个人预约记录 -->
+    <select id="selectByStudent" resultType="com.example.springboot.dto.StudentReservationDTO">
+        SELECT
+        ri.reserve_id,
+        su.user_name AS counselor_name,
+        DATE_FORMAT(ri.reserve_date, '%Y-%m-%d') AS reserve_date,
+        ri.reserve_time,
+        ri.consult_topic,
+        ri.consult_room,
+        ri.reserve_status,
+        DATE_FORMAT(ri.create_time, '%Y-%m-%d %H:%i:%s') AS create_time
+        FROM
+        reservation_info ri
+        INNER JOIN
+        sys_user su ON ri.counselor_id = su.user_id
+        WHERE
+        ri.student_id = #{studentId}
+        <if test="reserveStatus != null">
+            AND ri.reserve_status = #{reserveStatus}
+        </if>
+        ORDER BY
+        ri.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    <!-- 学生查询个人预约记录总数 -->
+    <select id="countByStudent" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        reservation_info
+        WHERE
+        student_id = #{studentId}
+        <if test="reserveStatus != null">
+            AND reserve_status = #{reserveStatus}
+        </if>
+    </select>
+
+    <!-- 咨询师查询名下预约记录 -->
+    <select id="selectByCounselor" resultType="com.example.springboot.dto.CounselorReservationDTO">
+        SELECT
+        ri.reserve_id,
+        su.user_name AS student_name,
+        DATE_FORMAT(ri.reserve_date, '%Y-%m-%d') AS reserve_date,
+        ri.reserve_time,
+        ri.consult_topic,
+        ri.consult_room,
+        ri.reserve_status,
+        DATE_FORMAT(ri.create_time, '%Y-%m-%d %H:%i:%s') AS create_time
+        FROM
+        reservation_info ri
+        INNER JOIN
+        sys_user su ON ri.student_id = su.user_id
+        WHERE
+        ri.counselor_id = #{counselorId}
+        <if test="reserveDate != null and reserveDate != ''">
+            AND DATE_FORMAT(ri.reserve_date, '%Y-%m-%d') = #{reserveDate}
+        </if>
+        <if test="reserveStatus != null">
+            AND ri.reserve_status = #{reserveStatus}
+        </if>
+        ORDER BY
+        ri.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+
+    <!-- 咨询师查询名下预约记录总数 -->
+    <select id="countByCounselor" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        reservation_info
+        WHERE
+        counselor_id = #{counselorId}
+        <if test="reserveDate != null and reserveDate != ''">
+            AND DATE_FORMAT(reserve_date, '%Y-%m-%d') = #{reserveDate}
+        </if>
+        <if test="reserveStatus != null">
+            AND reserve_status = #{reserveStatus}
+        </if>
+    </select>
+
+    <!-- 查询预约详情（关联咨询师信息） -->
+    <select id="selectDetailById" resultType="com.example.springboot.dto.ReservationDetailDTO">
+        SELECT
+            ri.reserve_id AS reserveId,
+            ci.user_name AS counselorName,
+            ci.specialty AS counselorSpecialty,
+            DATE_FORMAT(ri.reserve_date, '%Y-%m-%d') AS reserveDate,
+            ri.reserve_time AS reserveTime,
+            ri.consult_topic AS consultTopic,
+            ri.consult_room AS consultRoom,
+            ri.reserve_status AS reserveStatus,
+            DATE_FORMAT(ri.create_time, '%Y-%m-%d %H:%i:%s') AS createTime,
+            DATE_FORMAT(ri.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime
+        FROM
+            reservation_info ri
+                INNER JOIN
+            counselor_info ci ON ri.counselor_id = ci.counselor_id
+        WHERE
+            ri.reserve_id = #{reserveId}
+    </select>
+
+</mapper>

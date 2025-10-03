@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ReserveTimeSlotMapper">
+
+    <!-- 基础字段映射 -->
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.ReserveTimeSlot">
+        <id column="reserve_time_id" property="reserveTimeId"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="reserve_date" property="reserveDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="is_occupied" property="isOccupied"/>
+        <result column="student_id" property="studentId"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 根据日期查询空闲时段 -->
+    <select id="selectFreeByDate" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            reserve_time_slot
+        WHERE
+            DATE_FORMAT(reserve_date, '%Y-%m-%d') = #{reserveDate}
+          AND is_occupied = 0
+        ORDER BY
+            start_time ASC
+    </select>
+
+    <!-- 根据ID查询时段 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            reserve_time_slot
+        WHERE
+            reserve_time_id = #{reserveTimeId}
+    </select>
+
+    <!-- 根据日期和开始时间查询时段 -->
+    <select id="selectByDateAndTime" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            reserve_time_slot
+        WHERE
+            reserve_date = #{reserveDate}
+          AND DATE_FORMAT(start_time, '%H:%i:%s') = #{startTime}
+    </select>
+
+    <!-- 校验时段是否重叠（排班时用） -->
+    <select id="checkTimeOverlap" resultType="java.lang.Integer">
+    <![CDATA[
+        SELECT COUNT(*)
+        FROM reserve_time_slot
+        WHERE
+            counselor_id = #{counselorId}
+          AND DATE_FORMAT(reserve_date, '%Y-%m-%d') = #{reserveDate}
+          AND #{startTime} < DATE_FORMAT(end_time, '%H:%i:%s')
+          AND #{endTime} > DATE_FORMAT(start_time, '%H:%i:%s')
+        ]]>
+    </select>
+
+    <!-- 批量查询时段是否有已占用 -->
+    <select id="countOccupiedByIds" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        reserve_time_slot
+        WHERE
+        reserve_time_id IN
+        <foreach collection="timeIdList" item="timeId" open="(" close=")" separator=",">
+            #{timeId}
+        </foreach>
+        AND is_occupied = 1
+    </select>
+
+    <!-- 按咨询师ID和日期查询已占用时段数量 -->
+    <select id="countOccupiedByCounselorAndDate" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            reserve_time_slot
+        WHERE
+            counselor_id = #{counselorId}
+          AND DATE_FORMAT(reserve_date, '%Y-%m-%d') = #{reserveDate}
+          AND is_occupied = 1
+    </select>
+
+    <!-- 新增时段 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reserveTimeId">
+        INSERT INTO reserve_time_slot (
+            counselor_id,
+            reserve_date,
+            start_time,
+            end_time,
+            is_occupied,
+            student_id,
+            created_at,
+            updated_at
+        ) VALUES (
+                     #{counselorId},
+                     #{reserveDate},
+                     #{startTime},
+                     #{endTime},
+                     #{isOccupied},
+                     #{studentId},
+                     NOW(),
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 更新时段 -->
+    <update id="updateById">
+        UPDATE reserve_time_slot
+        SET
+            counselor_id = #{counselorId},
+            reserve_date = #{reserveDate},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            is_occupied = #{isOccupied},
+            student_id = #{studentId},
+            updated_at = NOW()
+        WHERE
+            reserve_time_id = #{reserveTimeId}
+    </update>
+
+    <!-- 批量删除时段 -->
+    <delete id="deleteBatchIds">
+        DELETE FROM reserve_time_slot
+        WHERE
+        reserve_time_id IN
+        <foreach collection="timeIdList" item="timeId" open="(" close=")" separator=",">
+            #{timeId}
+        </foreach>
+    </delete>
+
+    <!-- 按咨询师ID和日期删除时段 -->
+    <delete id="deleteByCounselorAndDate">
+        DELETE FROM reserve_time_slot
+        WHERE
+            counselor_id = #{counselorId}
+          AND DATE_FORMAT(reserve_date, '%Y-%m-%d') = #{reserveDate}
+    </delete>
+
+    <!-- 查询匹配的咨询师及真实时段详情 -->
+    <select id="selectMatchedCounselors" resultType="com.example.springboot.dto.CounselorMatchDetailDTO">
+        SELECT
+        ci.counselor_id AS counselorId,
+        su.user_name AS counselorName,
+        ci.specialty,
+        ci.orientation,
+        ci.title,
+        ci.location,
+        ci.avatar_url AS avatarUrl,
+        rts.reserve_time_id AS reserveTimeId,
+        DATE_FORMAT(rts.reserve_date, '%Y-%m-%d') AS reserveDate,
+        DATE_FORMAT(rts.start_time, '%H:%i:%s') AS startTime,
+        DATE_FORMAT(rts.end_time, '%H:%i:%s') AS endTime,
+        rts.is_occupied AS isOccupied
+        FROM counselor_info ci
+        INNER JOIN sys_user su ON ci.counselor_id = su.user_id
+        INNER JOIN reserve_time_slot rts ON ci.counselor_id = rts.counselor_id
+        WHERE su.status = 1
+        AND rts.is_occupied = 0
+        AND ci.specialty LIKE CONCAT('%', #{consultReason}, '%')
+        AND rts.reserve_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+        AND (
+        <foreach collection="selectedTimeList" item="time" separator="OR">
+            (rts.reserve_date = STR_TO_DATE(#{time.reserveDate}, '%Y-%m-%d')
+            AND rts.start_time &lt; STR_TO_DATE(#{time.endTime}, '%H:%i:%s')
+            AND rts.end_time &gt; STR_TO_DATE(#{time.startTime}, '%H:%i:%s'))
+        </foreach>
+        )
+        ORDER BY
+        rts.reserve_date ASC,
+        rts.start_time ASC,
+        ci.counselor_id ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计匹配的咨询师总数 -->
+    <select id="countMatchedCounselors" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT ci.counselor_id)
+        FROM counselor_info ci
+        INNER JOIN sys_user su ON ci.counselor_id = su.user_id
+        INNER JOIN reserve_time_slot rts ON ci.counselor_id = rts.counselor_id
+        WHERE su.status = 1
+        AND rts.is_occupied = 0
+        AND ci.specialty LIKE CONCAT('%', #{consultReason}, '%')
+        AND rts.reserve_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+        AND (
+        <foreach collection="selectedTimeList" item="time" separator="OR">
+            (rts.reserve_date = STR_TO_DATE(#{time.reserveDate}, '%Y-%m-%d')
+            AND rts.start_time &lt; STR_TO_DATE(#{time.endTime}, '%H:%i:%s')
+            AND rts.end_time &gt; STR_TO_DATE(#{time.startTime}, '%H:%i:%s'))
+        </foreach>
+        )
+    </select>
+
+    <!-- 根据日期、开始时间、咨询师id查询时段 -->
+    <select id="selectByDateAndTimeAndCounselor" resultMap="BaseResultMap">
+        SELECT *
+        FROM reserve_time_slot
+        WHERE reserve_date = #{reserveDate}
+          AND DATE_FORMAT(start_time, '%H:%i:%s') = #{startTime}
+          AND counselor_id = #{counselorId}
+    </select>
+
+    <!-- 根据日期、开始时间、咨询师id查询时段 -->
+    <select id="selectByDateAndTimeAndCounselorId" resultMap="BaseResultMap">
+        SELECT
+            *
+        FROM
+            reserve_time_slot
+        WHERE
+            reserve_date = #{reserveDate}
+          AND DATE_FORMAT(start_time, '%H:%i:%s') = #{startTime}
+          AND counselor_id = #{counselorId}
+    </select>
+</mapper>

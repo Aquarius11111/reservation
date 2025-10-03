@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ConsultRecordMapper">
+
+    <!-- 基础字段映射 -->
+    <resultMap id="BaseResultMap" type="com.example.springboot.entity.ConsultRecord">
+        <id column="record_id" property="recordId"/>
+        <result column="reserve_id" property="reserveId"/>
+        <result column="counselor_id" property="counselorId"/>
+        <result column="consult_date" property="consultDate"/>
+        <result column="student_performance" property="studentPerformance"/>
+        <result column="consult_content" property="consultContent"/>
+        <result column="advice_plan" property="advicePlan"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+
+    <!-- 新增咨询记录 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="recordId">
+        INSERT INTO consult_record (
+            reserve_id,
+            counselor_id,
+            consult_date,
+            student_performance,
+            consult_content,
+            advice_plan,
+            create_time,
+            update_time
+        ) VALUES (
+                     #{reserveId},
+                     #{counselorId},
+                     #{consultDate},
+                     #{studentPerformance},
+                     #{consultContent},
+                     #{advicePlan},
+                     NOW(),
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 根据预约ID查询是否已存在咨询记录 -->
+    <select id="countByReserveId" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            consult_record
+        WHERE
+            reserve_id = #{reserveId}
+    </select>
+
+</mapper>
