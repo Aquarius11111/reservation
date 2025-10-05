@@ -6,7 +6,7 @@
 // API基础配置
 const API_CONFIG = {
   // 开发环境 - 使用Apifox Mock服务
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-default',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
   
   // 生产环境（示例）
   // baseURL: 'https://your-production-domain.com',
@@ -168,6 +168,17 @@ export const studentAPI = {
  * 预约相关API接口
  */
 export const reservationAPI = {
+  /**
+   * 匹配推荐咨询师
+   * @param {Object} matchData 匹配数据：selectedTimeList, consultReason, pageNum, pageSize
+   */
+  matchCounselor(matchData) {
+    return request('/api/reserve/match', {
+      method: 'POST',
+      data: matchData
+    })
+  },
+
   /**
    * 创建预约
    * @param {Object} reservationData 预约数据
