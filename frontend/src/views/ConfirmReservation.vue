@@ -1,5 +1,14 @@
 <template>
   <div class="confirm-reservation">
+    <!-- 成功提示对话框 -->
+    <div v-if="showSuccessDialog" class="success-dialog-overlay" @click="closeSuccessDialog">
+      <div class="success-dialog" @click.stop>
+        <div class="success-icon">✅</div>
+        <h3 class="success-title">预约创建成功！</h3>
+        <p class="success-message">您的预约已成功提交，请等待咨询师确认。</p>
+        <div class="countdown">对话框将在 {{ countdown }} 秒后自动关闭</div>
+      </div>
+    </div>
     <div class="container">
       <h2 class="page-title">确认预约信息</h2>
       
@@ -35,9 +44,9 @@
           </div>
         </div>
 
-        <!-- 预约时间 -->
+        <!-- 学生的可预约时间 -->
         <div class="time-section">
-          <h3>预约时间</h3>
+          <h3>学生的可预约时间</h3>
           <div class="time-slots">
             <div 
               v-for="(timeSlot, index) in selectedTimes" 
@@ -95,7 +104,7 @@
 </template>
 
 <script>
-import { counselorAPI } from '../api/index.js'
+import { counselorAPI, reservationAPI } from '../api/index.js'
 import { useReservationStore } from '@/stores/reservation'
 
 export default {
@@ -108,7 +117,9 @@ export default {
       counselorInfo: null,
       loading: true,
       submitting: false,
-      selectedTimeSlot: null // 选中的具体时段
+      selectedTimeSlot: null, // 选中的具体时段
+      showSuccessDialog: false, // 显示成功对话框
+      countdown: 3 // 倒计时
     }
   },
   async mounted() {
@@ -186,15 +197,15 @@ export default {
         console.log('创建预约请求数据:', requestData)
         
         // 调用创建预约API
-        const response = await this.createReservationAPI(requestData)
+        const response = await reservationAPI.createReservation(requestData)
         
         if (response.success && response.data.code === 200) {
-          alert('预约创建成功！')
+          // 显示成功对话框
+          this.showSuccessDialog = true
+          this.startCountdown()
           // 清理Pinia store中的数据
           const reservationStore = useReservationStore()
           reservationStore.clearReservationData()
-          // 成功后跳转到首页
-          this.$router.push({ name: 'home' })
         } else {
           console.error('创建预约失败:', response)
           alert(response.data?.message || '创建预约失败，请重试')
@@ -207,42 +218,30 @@ export default {
       }
     },
     
-    // 创建预约API调用
-    async createReservationAPI(data) {
-      const API_CONFIG = {
-        baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
-        timeout: 10000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-      
-      const config = {
-        method: 'POST',
-        headers: API_CONFIG.headers,
-        body: JSON.stringify(data)
-      }
-      
-      const response = await fetch(`${API_CONFIG.baseURL}/api/reserve/create`, config)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const result = await response.json()
-      
-      return {
-        success: true,
-        data: result,
-        status: response.status
-      }
-    },
-    
     goBack() {
       // 清理Pinia store中的数据
       const reservationStore = useReservationStore()
       reservationStore.clearReservationData()
       this.$router.go(-1)
+    },
+
+    // 开始倒计时
+    startCountdown() {
+      this.countdown = 3
+      const timer = setInterval(() => {
+        this.countdown--
+        if (this.countdown <= 0) {
+          clearInterval(timer)
+          this.closeSuccessDialog()
+        }
+      }, 1000)
+    },
+
+    // 关闭成功对话框
+    closeSuccessDialog() {
+      this.showSuccessDialog = false
+      // 跳转到首页
+      this.$router.push({ name: 'home' })
     }
   }
 }
@@ -253,6 +252,81 @@ export default {
   padding: 20px 0;
   background-color: #f8f9fa;
   min-height: 100vh;
+}
+
+/* 成功对话框样式 */
+.success-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.success-dialog {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  animation: dialogAppear 0.3s ease-out;
+}
+
+@keyframes dialogAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.success-title {
+  color: #28a745;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  color: #6c757d;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.countdown {
+  color: #999;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .container {
