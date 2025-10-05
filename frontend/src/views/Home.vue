@@ -19,9 +19,18 @@
         <div class="card-icon">👨‍⚕️</div>
         <h3 class="card-title">预约咨询</h3>
         <p class="card-description">预约专业心理咨询师，获得个性化的心理支持</p>
-        <button class="card-button disabled">
-          即将开放
-        </button>
+        <router-link to="/reservation" class="card-button">
+          立即预约
+        </router-link>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <h3 class="card-title">查看预约</h3>
+        <p class="card-description">查看您的预约记录，管理预约状态</p>
+        <router-link to="/reservation-list" class="card-button">
+          查看记录
+        </router-link>
       </div>
 
       <div class="card">

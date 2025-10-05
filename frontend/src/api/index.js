@@ -6,7 +6,7 @@
 // API基础配置
 const API_CONFIG = {
   // 开发环境 - 使用Apifox Mock服务
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-default',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
   
   // 生产环境（示例）
   // baseURL: 'https://your-production-domain.com',
@@ -169,11 +169,22 @@ export const studentAPI = {
  */
 export const reservationAPI = {
   /**
+   * 匹配推荐咨询师
+   * @param {Object} matchData 匹配数据：selectedTimeList, consultReason, pageNum, pageSize
+   */
+  matchCounselor(matchData) {
+    return request('/api/reserve/match', {
+      method: 'POST',
+      data: matchData
+    })
+  },
+
+  /**
    * 创建预约
    * @param {Object} reservationData 预约数据
    */
   createReservation(reservationData) {
-    return request('/api/reservation', {
+    return request('/api/reserve/create', {
       method: 'POST',
       data: reservationData
     })
@@ -184,7 +195,7 @@ export const reservationAPI = {
    * @param {string} studentId 学生ID
    */
   getReservationList(studentId) {
-    return request('/api/reservation/list', {
+    return request('/api/reserve/student/list', {
       method: 'GET',
       params: { studentId }
     })
@@ -192,11 +203,12 @@ export const reservationAPI = {
 
   /**
    * 取消预约
-   * @param {string} reservationId 预约ID
+   * @param {Object} cancelData 取消预约数据 {reserveId, cancelReason}
    */
-  cancelReservation(reservationId) {
-    return request(`/api/reservation/${reservationId}/cancel`, {
-      method: 'POST'
+  cancelReservation(cancelData) {
+    return request('/api/reserve/cancel', {
+      method: 'POST',
+      data: cancelData
     })
   },
 
