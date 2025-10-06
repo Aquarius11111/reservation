@@ -3,6 +3,8 @@ package com.example.springboot.controller;
 import com.example.springboot.common.PageResult;
 import com.example.springboot.common.Result;
 import com.example.springboot.dto.*;
+import com.example.springboot.entity.ConsultRecord;
+import com.example.springboot.service.ConsultRecordService;
 import com.example.springboot.service.ReserveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -112,5 +114,21 @@ public class ReserveController {
     @PostMapping("/time/delete-batch")
     public Result deleteReserveTimeBatch(@RequestBody ReserveTimeDeleteParamDTO deleteDTO) {
         return Result.success(reserveService.deleteReserveTimeBatch(deleteDTO));
+    }
+
+    @Autowired
+    private ConsultRecordService consultRecordService;
+
+    /**
+     * 获取咨询记录列表
+     * @param queryDTO 前端传递的查询参数（含分页+筛选条件）
+     * @return 标准API响应（含分页结果）
+     */
+    @GetMapping("/counselor/records")
+    public Result getConsultRecords(ConsultRecordQueryDTO queryDTO) {
+        // 1. 调用Service获取分页结果
+        PageResult<ConsultRecord> result = consultRecordService.getConsultRecordList(queryDTO);
+        // 2. 返回成功响应
+        return Result.success(result);
     }
 }

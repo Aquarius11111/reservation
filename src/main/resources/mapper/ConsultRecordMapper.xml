@@ -2,11 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.springboot.mapper.ConsultRecordMapper">
 
-    <!-- 基础字段映射 -->
+
+
+    <!-- 结果集映射：严格对齐实体类字段，扩展字段单独配置 -->
     <resultMap id="BaseResultMap" type="com.example.springboot.entity.ConsultRecord">
         <id column="record_id" property="recordId"/>
         <result column="reserve_id" property="reserveId"/>
         <result column="counselor_id" property="counselorId"/>
+        <result column="counselor_name" property="counselorName"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_name" property="studentName"/>
         <result column="consult_date" property="consultDate"/>
         <result column="student_performance" property="studentPerformance"/>
         <result column="consult_content" property="consultContent"/>
@@ -15,9 +20,7 @@
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
-
-    <!-- 新增咨询记录 -->
-    <insert id="insert" useGeneratedKeys="true" keyProperty="recordId">
+    <insert id="insert" parameterType="com.example.springboot.entity.ConsultRecord" useGeneratedKeys="true" keyProperty="recordId">
         INSERT INTO consult_record (
             reserve_id,
             counselor_id,
@@ -38,6 +41,85 @@
                      NOW()
                  )
     </insert>
+
+    <!-- 查询咨询记录列表 -->
+    <select id="selectConsultRecordList" resultMap="BaseResultMap" parameterType="com.example.springboot.dto.ConsultRecordQueryDTO">
+        SELECT
+        cr.record_id,
+        cr.reserve_id,
+        cr.counselor_id,
+        cu.user_name AS counselor_name,  -- 关联用户表获取咨询师姓名
+        ri.student_id,
+        su.user_name AS student_name,    -- 关联用户表获取学生姓名
+        DATE_FORMAT(cr.consult_date, '%Y-%m-%d') AS consult_date,
+        cr.student_performance,
+        cr.consult_content,
+        cr.advice_plan,
+        cr.create_time,
+        cr.update_time
+        FROM
+        consult_record cr
+        -- 关联预约表获取学生ID
+        INNER JOIN reservation_info ri ON cr.reserve_id = ri.reserve_id
+        -- 关联用户表获取学生姓名
+        LEFT JOIN sys_user su ON ri.student_id = su.user_id
+        -- 关联用户表获取咨询师姓名
+        LEFT JOIN sys_user cu ON cr.counselor_id = cu.user_id
+        WHERE
+        1 = 1
+        <!-- 学生ID筛选 -->
+        <if test="studentId != null">
+            AND ri.student_id = #{studentId}
+        </if>
+        <!-- 咨询师ID筛选 -->
+        <if test="counselorId != null and counselorId != ''">
+            AND cr.counselor_id = #{counselorId}
+        </if>
+        <!-- 咨询日期筛选 -->
+        <if test="consultDate != null and consultDate != ''">
+            AND cr.consult_date = #{consultDate}
+        </if>
+        <!-- 开始日期筛选 -->
+        <if test="startDate != null and startDate != ''">
+            AND cr.consult_date >= #{startDate}
+        </if>
+        <!-- 结束日期筛选 -->
+        <if test="endDate != null and endDate != ''">
+            AND cr.consult_date &lt;= #{endDate}
+        </if>
+        <!-- 排序：按咨询日期倒序，最新的在前 -->
+        ORDER BY
+        cr.consult_date DESC,
+        cr.create_time DESC
+        <!-- 分页 -->
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 查询咨询记录总数 -->
+    <select id="countConsultRecord" resultType="java.lang.Integer" parameterType="com.example.springboot.dto.ConsultRecordQueryDTO">
+        SELECT
+        COUNT(*)
+        FROM
+        consult_record cr
+        INNER JOIN reservation_info ri ON cr.reserve_id = ri.reserve_id
+        WHERE
+        1 = 1
+        <if test="studentId != null">
+            AND ri.student_id = #{studentId}
+        </if>
+        <if test="counselorId != null and counselorId != ''">
+            AND cr.counselor_id = #{counselorId}
+        </if>
+        <if test="consultDate != null and consultDate != ''">
+            AND cr.consult_date = #{consultDate}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND cr.consult_date >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND cr.consult_date &lt;= #{endDate}
+        </if>
+    </select>
 
     <!-- 根据预约ID查询是否已存在咨询记录 -->
     <select id="countByReserveId" resultType="java.lang.Integer">

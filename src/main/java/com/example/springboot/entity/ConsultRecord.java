@@ -21,6 +21,10 @@ public class ConsultRecord {
      */
     private String counselorId;
 
+    private String counselorName;        // 咨询师姓名
+    private Long studentId;              // 学生ID
+    private String studentName;          // 学生姓名
+
     /**
      * 实际咨询日期（需与预约日期一致或备注说明）
      */
