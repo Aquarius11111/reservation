@@ -1,7 +1,9 @@
 package com.example.springboot.mapper;
 
 import com.example.springboot.dto.ConsultRecordQueryDTO;
+import com.example.springboot.dto.CounselorUnfilledConsultQueryDTO;
 import com.example.springboot.entity.ConsultRecord;
+import com.example.springboot.vo.UnfilledConsultVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -32,4 +34,14 @@ public interface ConsultRecordMapper {
      * 查询咨询记录总数（用于分页计算）
      */
     int countConsultRecord(ConsultRecordQueryDTO queryDTO);
+
+    /**
+     * 查询咨询师未填写的咨询记录
+     */
+    List<UnfilledConsultVO> selectUnfilledConsultRecords(CounselorUnfilledConsultQueryDTO queryDTO);
+
+    /**
+     * 统计未填写的咨询记录总数
+     */
+    int countUnfilledConsultRecords(CounselorUnfilledConsultQueryDTO queryDTO);
 }

@@ -1,8 +1,10 @@
 package com.example.springboot.service;
 
+import com.example.springboot.dto.CounselorUnfilledConsultQueryDTO;
 import com.example.springboot.entity.ConsultRecord;
 import com.example.springboot.dto.ConsultRecordQueryDTO;
 import com.example.springboot.common.PageResult;
+import com.example.springboot.vo.UnfilledConsultVO;
 
 public interface ConsultRecordService {
     /**
@@ -11,4 +13,9 @@ public interface ConsultRecordService {
      * @return 分页结果（含实体类列表+分页信息）
      */
     PageResult<ConsultRecord> getConsultRecordList(ConsultRecordQueryDTO queryDTO);
+
+    /**
+     * 咨询师查询个人咨询记录
+     */
+    PageResult<UnfilledConsultVO> getUnfilledConsultRecords(CounselorUnfilledConsultQueryDTO queryDTO);
 }

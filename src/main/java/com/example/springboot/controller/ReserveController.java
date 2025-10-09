@@ -6,6 +6,7 @@ import com.example.springboot.dto.*;
 import com.example.springboot.entity.ConsultRecord;
 import com.example.springboot.service.ConsultRecordService;
 import com.example.springboot.service.ReserveService;
+import com.example.springboot.vo.UnfilledConsultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 /**
@@ -129,6 +130,15 @@ public class ReserveController {
         // 1. 调用Service获取分页结果
         PageResult<ConsultRecord> result = consultRecordService.getConsultRecordList(queryDTO);
         // 2. 返回成功响应
+        return Result.success(result);
+    }
+
+    /**
+     * 咨询师查询个人未填写的咨询记录
+     */
+    @GetMapping("/counselor/unfilled")
+    public Result getUnfilledConsultRecords(CounselorUnfilledConsultQueryDTO queryDTO) {
+        PageResult<UnfilledConsultVO> result = consultRecordService.getUnfilledConsultRecords(queryDTO);
         return Result.success(result);
     }
 }

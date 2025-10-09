@@ -3,6 +3,68 @@
 <mapper namespace="com.example.springboot.mapper.ConsultRecordMapper">
 
 
+    <!-- 结果集映射：未填写的咨询记录 -->
+    <resultMap id="UnfilledConsultResultMap" type="com.example.springboot.vo.UnfilledConsultVO">
+        <result column="reserve_id" property="reserveId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_name" property="studentName"/>
+        <result column="reserve_date" property="reserveDate"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 查询未填写的咨询记录列表（新增状态=3筛选） -->
+    <select id="selectUnfilledConsultRecords" resultMap="UnfilledConsultResultMap" parameterType="com.example.springboot.dto.CounselorUnfilledConsultQueryDTO">
+        SELECT
+        ri.reserve_id,
+        ri.student_id,
+        su.user_name AS student_name,
+        DATE_FORMAT(ri.reserve_date, '%Y-%m-%d') AS reserve_date,
+        DATE_FORMAT(ri.create_time, '%Y-%m-%d %H:%i:%s') AS create_time
+        FROM
+        reservation_info ri
+        LEFT JOIN consult_record cr ON ri.reserve_id = cr.reserve_id
+        LEFT JOIN sys_user su ON ri.student_id = su.user_id
+        WHERE
+        -- 筛选当前咨询师的预约
+        ri.counselor_id = #{counselorId}
+        -- 核心新增条件：仅筛选状态为3（已完成）的预约
+        AND ri.reserve_status = 3
+        -- 筛选未填写的记录
+        AND cr.record_id IS NULL
+        <!-- 开始日期筛选 -->
+        <if test="startDate != null and startDate != ''">
+            AND ri.reserve_date >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+        </if>
+        <!-- 结束日期筛选 -->
+        <if test="endDate != null and endDate != ''">
+            AND ri.reserve_date &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d')
+        </if>
+        -- 按预约日期倒序排序
+        ORDER BY ri.reserve_date DESC
+        -- 分页
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计未填写的咨询记录总数（同步新增状态筛选） -->
+    <select id="countUnfilledConsultRecords" resultType="java.lang.Integer" parameterType="com.example.springboot.dto.CounselorUnfilledConsultQueryDTO">
+        SELECT
+        COUNT(*)
+        FROM
+        reservation_info ri
+        LEFT JOIN consult_record cr ON ri.reserve_id = cr.reserve_id
+        WHERE
+        ri.counselor_id = #{counselorId}
+        -- 核心新增条件：仅统计状态为3的预约
+        AND ri.reserve_status = 3
+        AND cr.record_id IS NULL
+        <if test="startDate != null and startDate != ''">
+            AND ri.reserve_date >= STR_TO_DATE(#{startDate}, '%Y-%m-%d')
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND ri.reserve_date &lt;= STR_TO_DATE(#{endDate}, '%Y-%m-%d')
+        </if>
+    </select>
+
 
     <!-- 结果集映射：严格对齐实体类字段，扩展字段单独配置 -->
     <resultMap id="BaseResultMap" type="com.example.springboot.entity.ConsultRecord">
@@ -130,5 +192,7 @@
         WHERE
             reserve_id = #{reserveId}
     </select>
+
+
 
 </mapper>

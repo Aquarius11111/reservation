@@ -1,10 +1,12 @@
 package com.example.springboot.service.impl;
 
+import com.example.springboot.dto.CounselorUnfilledConsultQueryDTO;
 import com.example.springboot.entity.ConsultRecord;
 import com.example.springboot.dto.ConsultRecordQueryDTO;
 import com.example.springboot.mapper.ConsultRecordMapper;
 import com.example.springboot.service.ConsultRecordService;
 import com.example.springboot.common.PageResult;
+import com.example.springboot.vo.UnfilledConsultVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,26 @@ public class ConsultRecordServiceImpl implements ConsultRecordService {
                 queryDTO.getPageNum(),
                 queryDTO.getPageSize(),
                 consultRecordList
+                );
+    }
+
+    @Override
+    public PageResult<UnfilledConsultVO> getUnfilledConsultRecords(CounselorUnfilledConsultQueryDTO queryDTO) {
+        // 计算分页偏移量
+        int offset = (queryDTO.getPageNum() - 1) * queryDTO.getPageSize();
+        queryDTO.setOffset(offset);
+
+        // 查询未填写的咨询记录列表
+        List<UnfilledConsultVO> recordList = consultRecordMapper.selectUnfilledConsultRecords(queryDTO);
+        // 统计总数
+        int total = consultRecordMapper.countUnfilledConsultRecords(queryDTO);
+
+        // 构建分页结果
+        return new PageResult<>(
+                total,
+                queryDTO.getPageNum(),
+                queryDTO.getPageSize(),
+                recordList
                 );
     }
 }

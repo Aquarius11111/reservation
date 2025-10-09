@@ -350,10 +350,10 @@ public class ReserveServiceImpl implements ReserveService {
         }
 
         // 4. 校验日期（只能标记当天的预约）
-        String today = DateUtils.formatDate(new Date());
-        if (!today.equals(DateUtils.formatDate(reservation.getReserveDate()))) {
-            throw new ServiceException("只能标记当天的预约为完成");
-        }
+//        String today = DateUtils.formatDate(new Date());
+//        if (!today.equals(DateUtils.formatDate(reservation.getReserveDate()))) {
+//            throw new ServiceException("只能标记当天的预约为完成");
+//        }
 
         // 5. 更新状态
         reservation.setReserveStatus(3); // 3=已完成
