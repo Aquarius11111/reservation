@@ -250,7 +250,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import QuestionItem from './QuestionItem.vue'
+import QuestionItem from '../components/QuestionItem.vue'
 import { surveyAPI, apiUtils } from '../api/index.js'
 
 // SCL-90量表统一选项

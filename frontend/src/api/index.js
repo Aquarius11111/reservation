@@ -220,6 +220,39 @@ export const reservationAPI = {
     return request(`/api/reservation/${reservationId}/complete`, {
       method: 'POST'
     })
+  },
+
+  /**
+   * 获取咨询师预约列表
+   * @param {Object} params 查询参数：counselorId, reserveDate, reserveStatus, pageNum, pageSize
+   */
+  getCounselorReservationList(params) {
+    return request('/api/reserve/counselor/list', {
+      method: 'GET',
+      params: params
+    })
+  },
+
+  /**
+   * 标记咨询完成
+   * @param {Object} data 完成数据：{reserveId, counselorId}
+   */
+  markCompleted(data) {
+    return request('/api/reserve/counselor/markCompleted', {
+      method: 'PUT',
+      data: data
+    })
+  },
+
+  /**
+   * 标记学生爽约
+   * @param {Object} data 爽约数据：{reserveId, counselorId}
+   */
+  markNoShow(data) {
+    return request('/api/reserve/counselor/markNoShow', {
+      method: 'PUT',
+      data: data
+    })
   }
 }
 
