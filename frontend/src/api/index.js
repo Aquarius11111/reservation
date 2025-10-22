@@ -253,6 +253,50 @@ export const reservationAPI = {
       method: 'PUT',
       data: data
     })
+  },
+
+  /**
+   * 创建咨询记录
+   * @param {Object} data 咨询记录数据：{reserveId, counselorId, consultDate, studentPerformance, consultContent, advicePlan}
+   */
+  createConsultRecord(data) {
+    return request('/api/reserve/counselor/createConsultRecord', {
+      method: 'POST',
+      data: data
+    })
+  },
+
+  /**
+   * 获取咨询师未填写的记录列表
+   * @param {Object} params 查询参数：{counselorId, startDate?, endDate?}
+   */
+  getPendingConsultRecords(params) {
+    return request('/api/reserve/counselor/unfilled', {
+      method: 'GET',
+      params: params
+    })
+  },
+
+  /**
+   * 获取咨询记录列表
+   * @param {Object} params 查询参数：{counselorId, pageNum, pageSize, startDate?, endDate?, studentName?}
+   */
+  getConsultRecords(params) {
+    return request('/api/reserve/counselor/records', {
+      method: 'GET',
+      params: params
+    })
+  },
+
+  /**
+   * 更新咨询记录
+   * @param {Object} data 咨询记录数据
+   */
+  updateConsultRecord(data) {
+    return request('/api/reserve/counselor/updateConsultRecord', {
+      method: 'PUT',
+      data: data
+    })
   }
 }
 
