@@ -83,11 +83,6 @@ const menuItems = [
     icon: '📅'
   },
   {
-    path: '/counselor/schedule',
-    name: '时间安排',
-    icon: '⏰'
-  },
-  {
     path: '/counselor/reports',
     name: '报告管理',
     icon: '📋'

@@ -268,6 +268,15 @@ const getStatusText = (status) => {
   return statusMap[status] || '未知状态'
 }
 
+// 获取今日日期字符串（YYYY-MM-DD）
+const getTodayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 // 判断是否可以操作
 const canOperate = (status) => {
   return status === 1  // 只有已预约状态可以操作
@@ -486,9 +495,8 @@ const handleFilterChange = () => {
 }
 
 onMounted(() => {
-
-
-  
+  // 默认将日期筛选设为今天
+  dateFilter.value = getTodayDateString()
   // 初始加载数据
   loadAppointments()
 })

@@ -52,6 +52,11 @@ const router = createRouter({
           path: 'reports',
           name: 'counselorReports',
           component: () => import('../views/counselor/Reports.vue')
+        },
+        {
+          path: 'settings',
+          name: 'counselorSettings',
+          component: () => import('../views/counselor/Settings.vue')
         }
       ]
     }

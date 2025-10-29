@@ -6,7 +6,7 @@
 // API基础配置
 const API_CONFIG = {
   // 开发环境 - 使用Apifox Mock服务
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287865',
   
   // 生产环境（示例）
   // baseURL: 'https://your-production-domain.com',
@@ -377,6 +377,32 @@ export const systemAPI = {
   healthCheck() {
     return request('/api/health', {
       method: 'GET'
+    })
+  }
+}
+
+/**
+ * 咨询师信息相关API接口
+ */
+export const counselorInfoAPI = {
+  /**
+   * 获取咨询师信息
+   * @param {string} counselorId 咨询师ID
+   */
+  getCounselorInfo(counselorId = '11001') {
+    return request(`/counselor/info/get/${counselorId}`, {
+      method: 'GET'
+    })
+  },
+
+  /**
+   * 更新咨询师信息
+   * @param {Object} counselorInfo 咨询师信息
+   */
+  updateCounselorInfo(counselorInfo) {
+    return request('/counselor/info/update', {
+      method: 'PUT',
+      data: counselorInfo
     })
   }
 }

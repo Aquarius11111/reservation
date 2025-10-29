@@ -3,7 +3,7 @@
     <!-- 欢迎区域 -->
     <div class="welcome-section">
       <h1 class="welcome-title">欢迎回来，{{ userInfo.name }}！</h1>
-      <p class="welcome-subtitle">今天是 {{ currentDate }}，您有 {{ todayAppointments.length }} 个预约</p>
+      <p class="welcome-subtitle">今天是 {{ currentDate }}，您有 {{ todayAppointments.length + pendingUnfilledCount }} 项待处理事项</p>
     </div>
 
     <!-- 主要内容区域 -->
@@ -64,22 +64,15 @@
             <div class="todo-item">
               <div class="todo-icon">📝</div>
               <div class="todo-content">
-                <div class="todo-text">完成学生咨询记录</div>
-                <div class="todo-count">3 项待完成</div>
+                <div class="todo-text">完成学生咨询预约</div>
+                <div class="todo-count"> {{ todayAppointments.length }} 项待完成</div>
               </div>
             </div>
             <div class="todo-item">
               <div class="todo-icon">📋</div>
               <div class="todo-content">
-                <div class="todo-text">填写咨询结果</div>
-                <div class="todo-count">2 项待填写</div>
-              </div>
-            </div>
-            <div class="todo-item">
-              <div class="todo-icon">⏰</div>
-              <div class="todo-content">
-                <div class="todo-text">更新可预约时间</div>
-                <div class="todo-count">下周时间待安排</div>
+                <div class="todo-text">填写咨询结果报告</div>
+                <div class="todo-count">{{ pendingUnfilledCount }} 项待填写</div>
               </div>
             </div>
           </div>
@@ -108,6 +101,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -133,6 +127,11 @@ const averageRating = ref(4.8)
 const todayAppointments = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+
+
+// 未填写咨询记录数量
+const pendingUnfilledCount = ref(0)
 
 // 当前日期
 const currentDate = computed(() => {
@@ -192,6 +191,26 @@ const loadTodayAppointments = async () => {
   }
 }
 
+// 加载未填写咨询记录数量
+const loadPendingUnfilledCount = async () => {
+  try {
+    const params = {
+      counselorId: counselorId.value,
+      pageNum: 1,
+      pageSize: 1
+    }
+    const response = await reservationAPI.getPendingConsultRecords(params)
+    if (response.success) {
+      const apiData = response.data
+      if (apiData && apiData.code === 200) {
+        pendingUnfilledCount.value = apiData.data?.total || (apiData.data?.list?.length || 0)
+      }
+    }
+  } catch (e) {
+    console.error('加载未填写记录数量失败:', e)
+  }
+}
+
 // 获取状态样式类
 const getStatusClass = (status) => {
   switch (status) {
@@ -217,6 +236,8 @@ const getStatusText = (status) => {
 onMounted(() => {
   // 加载今日预约数据
   loadTodayAppointments()
+  // 加载未填写咨询记录数量
+  loadPendingUnfilledCount()
 })
 </script>
 
