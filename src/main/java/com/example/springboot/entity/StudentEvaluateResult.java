@@ -24,4 +24,8 @@ public class StudentEvaluateResult {
     private Integer psychoticScore;
     private Integer otherScore;
     private Date createdAt;
+    // 🧠 新增字段：AI分析结果与建议
+    private String analysis;     // AI分析结果（心理状态解读）
+    private String suggestion;   // AI生成的心理建议与调节方案
 }
+
