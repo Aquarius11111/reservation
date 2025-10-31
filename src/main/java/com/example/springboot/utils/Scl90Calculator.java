@@ -2,17 +2,14 @@ package com.example.springboot.utils;
 
 import com.example.springboot.entity.Scl90Assessment;
 import com.example.springboot.entity.StudentEvaluateResult;
-
+import java.util.List;
 
 public class Scl90Calculator {
 
-    /**
-     * 计算 SCL-90 各项得分
-     */
     public static StudentEvaluateResult calculate(Scl90Assessment assessment) {
-        Integer[] scores = assessment.getAnswers(); // 90 个题目的答案
-        if (scores == null || scores.length != 90) {
-            throw new IllegalArgumentException("answers 数组必须有 90 个元素");
+        List<Integer> scores = assessment.getAnswers(); // ✅ 改为 List
+        if (scores == null || scores.size() != 90) {
+            throw new IllegalArgumentException("answers 列表必须有 90 个元素");
         }
 
         StudentEvaluateResult result = new StudentEvaluateResult();
@@ -23,8 +20,6 @@ public class Scl90Calculator {
             totalScore += (s != null ? s : 0);
         }
         result.setTotalScore(totalScore);
-
-        // 总均分
         result.setTotalAvg(totalScore / 90.0);
 
         // 阳性项目数（>=2）
@@ -65,14 +60,11 @@ public class Scl90Calculator {
         return result;
     }
 
-    /**
-     * 根据索引数组求和
-     */
-    private static int sumByIndex(Integer[] scores, int[] idxs) {
+    private static int sumByIndex(List<Integer> scores, int[] idxs) {
         int sum = 0;
         for (int i : idxs) {
-            if (i >= 0 && i < scores.length && scores[i] != null) {
-                sum += scores[i];
+            if (i >= 0 && i < scores.size() && scores.get(i) != null) {
+                sum += scores.get(i);
             }
         }
         return sum;
