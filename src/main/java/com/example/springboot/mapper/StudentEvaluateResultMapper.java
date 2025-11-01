@@ -23,14 +23,18 @@ public interface StudentEvaluateResultMapper {
     void insertResult(StudentEvaluateResult result);
 
     // 根据 studentId 查询所有结果（历史记录）
-    @Select("SELECT * FROM student_evaluate_result WHERE student_id = #{studentId} ORDER BY created_at ASC")
+    @Select("SELECT * FROM student_evaluate_result WHERE student_id = #{studentId} ORDER BY created_at DESC")
     List<StudentEvaluateResult> findResultByStudentId(String studentId);
 
     // 根据 studentId 查询最新一条结果
     @Select("SELECT * FROM student_evaluate_result WHERE student_id = #{studentId} ORDER BY created_at DESC LIMIT 1")
     StudentEvaluateResult findLatestByStudentId(String studentId);
 
-    // 更新测评结果（复测时覆盖）
+    // ✅ 新增：根据 studentId 和 resultId 查询单次测评详情
+    @Select("SELECT * FROM student_evaluate_result WHERE student_id = #{studentId} AND result_id = #{resultId}")
+    StudentEvaluateResult findResultDetail(@Param("studentId") String studentId, @Param("resultId") Long resultId);
+
+    // 更新测评结果（如果使用覆盖模式）
     @Update("UPDATE student_evaluate_result SET " +
             "total_score = #{totalScore}, total_avg = #{totalAvg}, positive_item_num = #{positiveItemNum}, " +
             "positive_avg = #{positiveAvg}, somatization_score = #{somatizationScore}, obsessive_score = #{obsessiveScore}, " +
