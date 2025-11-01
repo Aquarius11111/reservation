@@ -130,8 +130,8 @@
         WHERE
         1 = 1
         <!-- 学生ID筛选 -->
-        <if test="studentId != null">
-            AND ri.student_id = #{studentId}
+        <if test="studentName != null">
+            AND su.user_name = #{studentName}
         </if>
         <!-- 咨询师ID筛选 -->
         <if test="counselorId != null and counselorId != ''">
@@ -140,14 +140,6 @@
         <!-- 咨询日期筛选 -->
         <if test="consultDate != null and consultDate != ''">
             AND cr.consult_date = #{consultDate}
-        </if>
-        <!-- 开始日期筛选 -->
-        <if test="startDate != null and startDate != ''">
-            AND cr.consult_date >= #{startDate}
-        </if>
-        <!-- 结束日期筛选 -->
-        <if test="endDate != null and endDate != ''">
-            AND cr.consult_date &lt;= #{endDate}
         </if>
         <!-- 排序：按咨询日期倒序，最新的在前 -->
         ORDER BY
@@ -164,22 +156,17 @@
         FROM
         consult_record cr
         INNER JOIN reservation_info ri ON cr.reserve_id = ri.reserve_id
+        LEFT JOIN sys_user su ON ri.student_id = su.user_id
         WHERE
         1 = 1
-        <if test="studentId != null">
-            AND ri.student_id = #{studentId}
+        <if test="studentName != null">
+            AND su.user_name = #{studentName}
         </if>
         <if test="counselorId != null and counselorId != ''">
             AND cr.counselor_id = #{counselorId}
         </if>
         <if test="consultDate != null and consultDate != ''">
             AND cr.consult_date = #{consultDate}
-        </if>
-        <if test="startDate != null and startDate != ''">
-            AND cr.consult_date >= #{startDate}
-        </if>
-        <if test="endDate != null and endDate != ''">
-            AND cr.consult_date &lt;= #{endDate}
         </if>
     </select>
 

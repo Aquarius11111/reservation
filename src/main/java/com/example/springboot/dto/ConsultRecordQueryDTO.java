@@ -8,7 +8,7 @@ public class ConsultRecordQueryDTO {
     private Integer pageSize = 10;       // 每页条数
     private Integer offset;              // 分页偏移量（计算得出）
 
-    private Long studentId;              // 学生ID
+    private String studentName;              // 学生ID
     private String counselorId;          // 咨询师ID
     private String consultDate;          // 咨询日期
     private String startDate;            // 开始日期
