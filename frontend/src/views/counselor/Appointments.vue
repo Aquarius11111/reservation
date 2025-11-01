@@ -204,7 +204,7 @@ const loading = ref(false)
 const error = ref(null)
 
 // 咨询师ID（实际应用中应该从用户登录状态获取）
-const counselorId = ref('C001')
+const counselorId = ref('11001')
 
 // 对话框相关
 const showConfirmDialog = ref(false)

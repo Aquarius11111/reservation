@@ -120,7 +120,7 @@ const error = ref(null)
 const reservations = ref([])
 
 // 模拟学生ID（实际应用中应该从用户登录状态获取）
-const studentId = ref('STU001')
+const studentId = ref('10003')
 
 // 取消预约对话框相关
 const showCancelDialogFlag = ref(false)

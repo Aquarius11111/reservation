@@ -6,7 +6,7 @@
 // API基础配置
 const API_CONFIG = {
   // 开发环境 - 使用Apifox Mock服务
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287865',
+  baseURL: 'http://192.168.43.187:9090',
   
   // 生产环境（示例）
   // baseURL: 'https://your-production-domain.com',

@@ -223,7 +223,7 @@ const loadCounselorInfo = async () => {
     error.value = null
 
     // 使用咨询师ID 11001 调用API
-    const response = await counselorInfoAPI.getCounselorInfo('C001')
+    const response = await counselorInfoAPI.getCounselorInfo('11001')
 
     if (response.success) {
       const apiData = response.data

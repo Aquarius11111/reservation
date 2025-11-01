@@ -116,7 +116,7 @@ const userInfo = reactive({
 })
 
 // 咨询师ID（实际应用中应该从用户登录状态获取）
-const counselorId = ref('C001')
+const counselorId = ref('11001')
 
 // 统计数据
 const totalStudents = ref(156)
