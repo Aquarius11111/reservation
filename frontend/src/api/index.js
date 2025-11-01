@@ -487,15 +487,35 @@ export const scheduleAPI = {
   },
 
   /**
+   * 更新排班
+   * @param {Object} scheduleData 排班数据：{reserveTimeId, counselorId, reserveDate, startTime, endTime, isOccupied, studentId}
+   */
+  updateSchedule(scheduleData) {
+    return request('/reserveTimeSlot/update', {
+      method: 'PUT',
+      data: scheduleData
+    })
+  },
+
+  /**
+   * 获取未来7天排班列表
+   * @param {Object} params 查询参数：{currentDate}
+   */
+  getNext7DaysSchedule(params) {
+    return request('/reserveTimeSlot/listNext7Days', {
+      method: 'GET',
+      params
+    })
+  },
+
+  /**
    * 删除排班
    * @param {number} reserveTimeId 排班ID
    */
   deleteSchedule(reserveTimeId) {
-    return request('/api/reserve/time/delete-batch', {
-      method: 'POST',
-      data: {
-        reserveTimeIdList: [reserveTimeId]
-      }
+    return request('/reserveTimeSlot/delete', {
+      method: 'DELETE',
+      data: [reserveTimeId]
     })
   }
 }

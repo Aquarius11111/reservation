@@ -10,109 +10,165 @@
     <div class="page-content">
       <!-- 排班记录表 -->
       <div class="schedule-table-container">
-        <!-- 搜索筛选栏 -->
-        <div class="search-bar">
-          <div class="search-input-group">
-            <label for="searchCounselorId" class="search-label">咨询师ID：</label>
-            <input 
-              id="searchCounselorId"
-              type="text" 
-              v-model="searchCounselorId"
-              class="search-input"
-              placeholder="请输入咨询师ID"
-              @keyup.enter="handleSearch"
-            />
-            <button class="btn-search" @click="handleSearch">查询</button>
-            <button class="btn-reset" @click="handleReset">重置</button>
+        <!-- 视图切换开关 -->
+        <div class="view-switch-container">
+          <div class="view-toggle">
+            <span class="toggle-label">列表视图</span>
+            <label class="switch">
+              <input type="checkbox" v-model="isCalendarView">
+              <span class="slider"></span>
+            </label>
+            <span class="toggle-label">日历视图</span>
           </div>
         </div>
         
-        <div v-if="loading" class="loading-overlay">
-          <div class="loading-spinner">加载中...</div>
+        <!-- 列表视图：搜索筛选栏 -->
+        <div v-if="!isCalendarView">
+          <div class="search-bar">
+            <div class="search-input-group">
+              <label for="searchCounselorId" class="search-label">咨询师ID：</label>
+              <input 
+                id="searchCounselorId"
+                type="text" 
+                v-model="searchCounselorId"
+                class="search-input"
+                placeholder="请输入咨询师ID"
+                @keyup.enter="handleSearch"
+              />
+              <button class="btn-search" @click="handleSearch">查询</button>
+              <button class="btn-reset" @click="handleReset">重置</button>
+            </div>
+          </div>
+          
+          <div v-if="loading" class="loading-overlay">
+            <div class="loading-spinner">加载中...</div>
+          </div>
+          
+          <table class="schedule-table" v-if="scheduleList.length > 0">
+            <thead>
+              <tr>
+                <th>排班ID</th>
+                <th>咨询师ID</th>
+                <th>排班日期</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>状态</th>
+                <th>学生ID</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, index) in scheduleList" :key="row.reserveTimeId" :class="{ 'stripe-row': index % 2 === 1 }">
+                <td>{{ row.reserveTimeId }}</td>
+                <td>{{ row.counselorId }}</td>
+                <td>{{ formatDate(row.reserveDate) }}</td>
+                <td>{{ formatTime(row.startTime) }}</td>
+                <td>{{ formatTime(row.endTime) }}</td>
+                <td>
+                  <span :class="['status-tag', row.isOccupied === 0 ? 'status-free' : 'status-occupied']">
+                    {{ row.isOccupied === 0 ? '空闲' : '已预约' }}
+                  </span>
+                </td>
+                <td>{{ row.studentId || '-' }}</td>
+                <td>{{ formatDateTime(row.createdAt) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn-edit" 
+                      @click="handleEdit(row)"
+                    >
+                      更新
+                    </button>
+                    <button 
+                      class="btn-delete" 
+                      @click="handleDelete(row)"
+                      :disabled="deletingIds.includes(row.reserveTimeId)"
+                    >
+                      {{ deletingIds.includes(row.reserveTimeId) ? '删除中...' : '删除' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- 空数据提示 -->
+          <div v-else class="empty-state">
+            <p>暂无排班记录</p>
+          </div>
+          
+          <!-- 分页 -->
+          <div class="pagination-container" v-if="total > 0">
+            <div class="pagination-info">
+              共 {{ total }} 条记录，每页 
+              <select v-model.number="pageSize" @change="handleSizeChange(pageSize)" class="page-size-select">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              条
+            </div>
+            <div class="pagination-controls">
+              <button 
+                class="pagination-btn" 
+                :disabled="currentPage === 1" 
+                @click="handlePageChange(currentPage - 1)"
+              >
+                上一页
+              </button>
+              <span class="pagination-page">{{ currentPage }} / {{ Math.ceil(total / pageSize) }}</span>
+              <button 
+                class="pagination-btn" 
+                :disabled="currentPage >= Math.ceil(total / pageSize)" 
+                @click="handlePageChange(currentPage + 1)"
+              >
+                下一页
+              </button>
+            </div>
+          </div>
         </div>
         
-        <table class="schedule-table" v-if="scheduleList.length > 0">
-          <thead>
-            <tr>
-              <th>排班ID</th>
-              <th>咨询师ID</th>
-              <th>排班日期</th>
-              <th>开始时间</th>
-              <th>结束时间</th>
-              <th>状态</th>
-              <th>学生ID</th>
-              <th>创建时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, index) in scheduleList" :key="row.reserveTimeId" :class="{ 'stripe-row': index % 2 === 1 }">
-              <td>{{ row.reserveTimeId }}</td>
-              <td>{{ row.counselorId }}</td>
-              <td>{{ formatDate(row.reserveDate) }}</td>
-              <td>{{ formatTime(row.startTime) }}</td>
-              <td>{{ formatTime(row.endTime) }}</td>
-              <td>
-                <span :class="['status-tag', row.isOccupied === 0 ? 'status-free' : 'status-occupied']">
-                  {{ row.isOccupied === 0 ? '空闲' : '已预约' }}
-                </span>
-              </td>
-              <td>{{ row.studentId || '-' }}</td>
-              <td>{{ formatDateTime(row.createdAt) }}</td>
-              <td>
-                <div class="action-buttons">
-                  <button 
-                    class="btn-edit" 
-                    @click="handleEdit(row)"
-                  >
-                    更新
-                  </button>
-                  <button 
-                    class="btn-delete" 
-                    @click="handleDelete(row)"
-                    :disabled="deletingIds.includes(row.reserveTimeId)"
-                  >
-                    {{ deletingIds.includes(row.reserveTimeId) ? '删除中...' : '删除' }}
-                  </button>
+        <!-- 日历视图 -->
+        <div v-if="isCalendarView" class="calendar-view">
+          <div class="calendar-week">
+            <div v-for="(day, index) in weekDays" :key="index" class="calendar-day-column">
+              <div class="day-header">
+                <div class="day-title">{{ day.weekday }}</div>
+                <div class="day-date">{{ day.date }}</div>
+              </div>
+              <div class="day-slots">
+                <div 
+                  v-for="slot in day.slots" 
+                  :key="slot.id"
+                  :class="['time-slot', slot.isOccupied ? 'occupied' : 'free']"
+                >
+                  <div class="slot-content">
+                    <div class="slot-time">{{ slot.time }}</div>
+                    <div class="slot-counselor">{{ slot.counselorId }}</div>
+                    <div class="slot-status">{{ slot.isOccupied ? '已预约' : '空闲' }}</div>
+                  </div>
+                  <div class="slot-actions">
+                    <button 
+                      class="slot-action-btn slot-edit-btn" 
+                      @click.stop="handleSlotEdit(slot)"
+                      title="更新"
+                    >
+                      更新
+                    </button>
+                    <button 
+                      class="slot-action-btn slot-delete-btn" 
+                      @click.stop="handleSlotDelete(slot)"
+                      title="删除"
+                    >
+                      删除
+                    </button>
+                  </div>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <!-- 空数据提示 -->
-        <div v-else class="empty-state">
-          <p>暂无排班记录</p>
-        </div>
-        
-        <!-- 分页 -->
-        <div class="pagination-container" v-if="total > 0">
-          <div class="pagination-info">
-            共 {{ total }} 条记录，每页 
-            <select v-model.number="pageSize" @change="handleSizeChange(pageSize)" class="page-size-select">
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-            条
-          </div>
-          <div class="pagination-controls">
-            <button 
-              class="pagination-btn" 
-              :disabled="currentPage === 1" 
-              @click="handlePageChange(currentPage - 1)"
-            >
-              上一页
-            </button>
-            <span class="pagination-page">{{ currentPage }} / {{ Math.ceil(total / pageSize) }}</span>
-            <button 
-              class="pagination-btn" 
-              :disabled="currentPage >= Math.ceil(total / pageSize)" 
-              @click="handlePageChange(currentPage + 1)"
-            >
-              下一页
-            </button>
+                <div v-if="day.slots.length === 0" class="no-slots">暂无排班</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -276,7 +332,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { scheduleAPI } from '../../api/index.js'
 
@@ -291,6 +347,8 @@ const total = ref(0)
 const deletingIds = ref([])
 const editingRecord = ref(null)
 const searchCounselorId = ref('')
+const isCalendarView = ref(false)
+const calendarSlots = ref([])
 
 // 表单数据
 const scheduleForm = reactive({
@@ -298,6 +356,30 @@ const scheduleForm = reactive({
   reserveDate: '',
   startTime: '',
   endTime: ''
+})
+
+// 日历视图：生成未来7天的数据
+const weekDays = computed(() => {
+  const days = []
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  
+  for (let i = 0; i < 7; i++) {
+    const date = new Date()
+    date.setDate(date.getDate() + i)
+    const weekday = weekdays[date.getDay()]
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`
+    
+    // 获取当天的排班时段
+    const slots = getSlotsForDate(date)
+    
+    days.push({
+      weekday,
+      date: dateStr,
+      slots
+    })
+  }
+  
+  return days
 })
 
 // 验证表单是否可以提交
@@ -354,7 +436,14 @@ const handleEdit = (row) => {
   editingRecord.value = row
   // 填充表单数据
   scheduleForm.counselorId = row.counselorId
-  scheduleForm.reserveDate = new Date(row.reserveDate).toISOString().split('T')[0]
+  
+  // 处理日期：如果已是YYYY-MM-DD格式，直接使用；否则从ISO时间中提取日期部分
+  if (row.reserveDate.includes('T')) {
+    scheduleForm.reserveDate = row.reserveDate.split('T')[0]
+  } else {
+    scheduleForm.reserveDate = row.reserveDate
+  }
+  
   scheduleForm.startTime = row.startTime.substring(0, 5) // HH:mm
   scheduleForm.endTime = row.endTime.substring(0, 5) // HH:mm
   showEditDialog.value = true
@@ -372,64 +461,89 @@ const updateEndTime = () => {
   }
 }
 
-// Mock数据
-const mockScheduleList = [
-  {
-    reserveTimeId: 1,
-    counselorId: '11001',
-    reserveDate: '2025-01-20T16:00:00.000+00:00',
-    startTime: '08:00:00',
-    endTime: '09:00:00',
-    isOccupied: 0,
-    studentId: null,
-    createdAt: '2025-01-15T21:06:31.000+00:00',
-    updatedAt: '2025-01-15T21:06:31.000+00:00'
-  },
-  {
-    reserveTimeId: 2,
-    counselorId: '11001',
-    reserveDate: '2025-01-20T16:00:00.000+00:00',
-    startTime: '09:00:00',
-    endTime: '10:00:00',
-    isOccupied: 1,
-    studentId: '10001',
-    createdAt: '2025-01-15T21:06:31.000+00:00',
-    updatedAt: '2025-01-15T21:06:31.000+00:00'
-  },
-  {
-    reserveTimeId: 3,
-    counselorId: '11002',
-    reserveDate: '2025-01-21T16:00:00.000+00:00',
-    startTime: '10:00:00',
-    endTime: '11:00:00',
-    isOccupied: 0,
-    studentId: null,
-    createdAt: '2025-01-15T21:06:31.000+00:00',
-    updatedAt: '2025-01-15T21:06:31.000+00:00'
-  },
-  {
-    reserveTimeId: 4,
-    counselorId: '11002',
-    reserveDate: '2025-01-21T16:00:00.000+00:00',
-    startTime: '14:00:00',
-    endTime: '15:00:00',
-    isOccupied: 1,
-    studentId: '10002',
-    createdAt: '2025-01-15T21:06:31.000+00:00',
-    updatedAt: '2025-01-15T21:06:31.000+00:00'
-  },
-  {
-    reserveTimeId: 5,
-    counselorId: '11001',
-    reserveDate: '2025-01-22T16:00:00.000+00:00',
-    startTime: '15:00:00',
-    endTime: '16:00:00',
-    isOccupied: 0,
-    studentId: null,
-    createdAt: '2025-01-15T21:06:31.000+00:00',
-    updatedAt: '2025-01-15T21:06:31.000+00:00'
+// 获取指定日期的排班时段
+const getSlotsForDate = (date) => {
+  const dateStr = formatDateForAPI(date)
+  const slots = calendarSlots.value.filter(slot => {
+    if (slot.reserveDate.includes('T')) {
+      return slot.reserveDate.split('T')[0] === dateStr
+    } else {
+      return slot.reserveDate === dateStr
+    }
+  })
+  
+  return slots.map(slot => ({
+    id: slot.reserveTimeId,
+    time: `${slot.startTime.substring(0, 5)}-${slot.endTime.substring(0, 5)}`,
+    counselorId: slot.counselorId,
+    isOccupied: slot.isOccupied,
+    reserveTimeId: slot.reserveTimeId
+  }))
+}
+
+// 格式化日期为YYYY-MM-DD
+const formatDateForAPI = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// 获取未来7天的排班数据
+const fetchNext7DaysSchedule = async () => {
+  if (!isCalendarView.value) return
+  
+  loading.value = true
+  
+  try {
+    const currentDate = formatDateForAPI(new Date())
+    const response = await scheduleAPI.getNext7DaysSchedule({ currentDate })
+    
+    if (response.success) {
+      const result = response.data
+      
+      if (result.code === 200) {
+        calendarSlots.value = result.data?.slots || []
+      } else {
+        ElMessage.error(result.message || '获取排班列表失败')
+        calendarSlots.value = []
+      }
+    } else {
+      ElMessage.error(response.error || '获取排班列表失败')
+      calendarSlots.value = []
+    }
+  } catch (error) {
+    console.error('获取未来7天排班列表错误:', error)
+    ElMessage.error('获取排班列表失败，请检查网络连接')
+    calendarSlots.value = []
+  } finally {
+    loading.value = false
   }
-]
+}
+
+// 点击排班时段的处理
+const handleSlotClick = (slot) => {
+  console.log('点击了排班时段:', slot)
+  ElMessage.info(`点击了 ${slot.counselorId} 的 ${slot.time}`)
+}
+
+// 日历视图中编辑排班
+const handleSlotEdit = (slot) => {
+  // 根据reserveTimeId找到完整的排班数据
+  const fullSlot = calendarSlots.value.find(s => s.reserveTimeId === slot.reserveTimeId)
+  if (fullSlot) {
+    handleEdit(fullSlot)
+  }
+}
+
+// 日历视图中删除排班
+const handleSlotDelete = async (slot) => {
+  // 根据reserveTimeId找到完整的排班数据
+  const fullSlot = calendarSlots.value.find(s => s.reserveTimeId === slot.reserveTimeId)
+  if (fullSlot) {
+    await handleDelete(fullSlot)
+  }
+}
 
 // 获取排班列表
 const fetchScheduleList = async () => {
@@ -496,44 +610,63 @@ const handleSubmit = async () => {
   submitting.value = true
   
   try {
-    // 模拟API调用延迟
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
     if (showEditDialog.value && editingRecord.value) {
       // 更新现有记录
-      const index = mockScheduleList.findIndex(r => r.reserveTimeId === editingRecord.value.reserveTimeId)
-      if (index > -1) {
-        mockScheduleList[index] = {
-          ...mockScheduleList[index],
-          counselorId: scheduleForm.counselorId,
-          reserveDate: `${scheduleForm.reserveDate}T16:00:00.000+00:00`,
-          startTime: `${scheduleForm.startTime}:00`,
-          endTime: `${scheduleForm.endTime}:00`,
-          updatedAt: new Date().toISOString()
-        }
-      }
-      ElMessage.success('排班更新成功')
-    } else {
-      // 创建新的排班记录
-      const newRecord = {
-        reserveTimeId: mockScheduleList.length > 0 ? Math.max(...mockScheduleList.map(r => r.reserveTimeId)) + 1 : 1,
+      const updateData = {
+        reserveTimeId: editingRecord.value.reserveTimeId,
         counselorId: scheduleForm.counselorId,
-        reserveDate: `${scheduleForm.reserveDate}T16:00:00.000+00:00`,
+        reserveDate: scheduleForm.reserveDate,
         startTime: `${scheduleForm.startTime}:00`,
         endTime: `${scheduleForm.endTime}:00`,
-        isOccupied: 0,
-        studentId: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        isOccupied: editingRecord.value.isOccupied,
+        studentId: editingRecord.value.studentId
       }
       
-      // 添加到mock数据
-      mockScheduleList.unshift(newRecord)
-      ElMessage.success('排班添加成功')
+      const response = await scheduleAPI.updateSchedule(updateData)
+      
+      if (response.success) {
+        const result = response.data
+        if (result.code === 200) {
+          ElMessage.success('排班更新成功')
+          closeDialog()
+          // 根据当前视图刷新数据
+          if (isCalendarView.value) {
+            fetchNext7DaysSchedule()
+          } else {
+            fetchScheduleList()
+          }
+        } else if (result.code === 500) {
+          ElMessage.error(result.message || '排班更新失败')
+        } else {
+          ElMessage.error(result.message || '排班更新失败')
+        }
+      } else {
+        ElMessage.error(response.error || '排班更新失败')
+      }
+    } else {
+      // 创建新的排班记录
+      const addData = {
+        counselorId: scheduleForm.counselorId,
+        reserveDate: scheduleForm.reserveDate,
+        startTime: `${scheduleForm.startTime}:00`,
+        endTime: `${scheduleForm.endTime}:00`
+      }
+      
+      const response = await scheduleAPI.addSchedule(addData)
+      
+      if (response.success) {
+        ElMessage.success('排班添加成功')
+        closeDialog()
+        // 根据当前视图刷新数据
+        if (isCalendarView.value) {
+          fetchNext7DaysSchedule()
+        } else {
+          fetchScheduleList()
+        }
+      } else {
+        ElMessage.error(response.error || '排班添加失败')
+      }
     }
-    
-    closeDialog()
-    fetchScheduleList()
   } catch (error) {
     console.error('提交排班失败:', error)
     ElMessage.error('网络错误，请稍后重试')
@@ -557,17 +690,26 @@ const handleDelete = async (row) => {
     
     deletingIds.value.push(row.reserveTimeId)
     
-    // 模拟API调用延迟
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const response = await scheduleAPI.deleteSchedule(row.reserveTimeId)
     
-    // 从mock数据中删除
-    const index = mockScheduleList.findIndex(r => r.reserveTimeId === row.reserveTimeId)
-    if (index > -1) {
-      mockScheduleList.splice(index, 1)
+    if (response.success) {
+      const result = response.data
+      if (result.code === 200) {
+        ElMessage.success('删除成功')
+        // 根据当前视图刷新数据
+        if (isCalendarView.value) {
+          fetchNext7DaysSchedule()
+        } else {
+          fetchScheduleList()
+        }
+      } else if (result.code === 500) {
+        ElMessage.error(result.message || '删除失败')
+      } else {
+        ElMessage.error(result.message || '删除失败')
+      }
+    } else {
+      ElMessage.error(response.error || '删除失败')
     }
-    
-    ElMessage.success('删除成功')
-    fetchScheduleList()
   } catch (error) {
     if (error === 'cancel') {
       // 用户取消，不做操作
@@ -595,6 +737,18 @@ const handlePageChange = (page) => {
 // 格式化日期
 const formatDate = (dateString) => {
   if (!dateString) return '-'
+  
+  // 如果已经是YYYY-MM-DD格式，直接转换为YYYY/MM/DD
+  if (dateString.includes('T')) {
+    const dateOnly = dateString.split('T')[0]
+    const [year, month, day] = dateOnly.split('-')
+    return `${year}/${month}/${day}`
+  } else if (dateString.includes('-')) {
+    const [year, month, day] = dateString.split('-')
+    return `${year}/${month}/${day}`
+  }
+  
+  // 备用方案：使用Date对象格式化
   const date = new Date(dateString)
   return date.toLocaleDateString('zh-CN', { 
     year: 'numeric', 
@@ -621,6 +775,15 @@ const formatDateTime = (dateString) => {
     minute: '2-digit'
   })
 }
+
+// 监听视图切换
+watch(isCalendarView, (newVal) => {
+  if (newVal) {
+    fetchNext7DaysSchedule()
+  } else {
+    fetchScheduleList()
+  }
+})
 
 // 页面加载时获取数据
 onMounted(() => {
@@ -687,12 +850,82 @@ onMounted(() => {
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .search-input-group {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 视图切换开关容器 */
+.view-switch-container {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 视图切换开关 */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: #8e44ad;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(26px);
 }
 
 .search-label {
@@ -1094,5 +1327,176 @@ onMounted(() => {
 .btn-submit:disabled {
   background: #c0c4cc;
   cursor: not-allowed;
+}
+
+/* 日历视图样式 */
+.calendar-view {
+  margin-top: 20px;
+}
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+}
+
+.calendar-day-column {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-header {
+  padding: 12px 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+}
+
+.day-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.day-date {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.day-slots {
+  flex: 1;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 450px;
+}
+
+.time-slot {
+  padding: 12px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.time-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.slot-content {
+  pointer-events: none;
+}
+
+.slot-actions {
+  display: none;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.time-slot:hover .slot-actions {
+  display: flex;
+}
+
+.slot-action-btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slot-edit-btn {
+  background-color: #8e44ad;
+  color: white;
+}
+
+.slot-edit-btn:hover {
+  background-color: #9b59b6;
+}
+
+.slot-delete-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.slot-delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.time-slot.free {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.time-slot.occupied {
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+}
+
+.slot-time {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.slot-counselor {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 2px;
+}
+
+.slot-status {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.time-slot.free .slot-status {
+  color: #155724;
+}
+
+.time-slot.occupied .slot-status {
+  color: #856404;
+}
+
+.no-slots {
+  text-align: center;
+  color: #adb5bd;
+  font-size: 0.9rem;
+  padding: 20px;
+  font-style: italic;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .calendar-week {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-week {
+    grid-template-columns: 1fr;
+  }
+  
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .view-toggle {
+    justify-content: center;
+  }
 }
 </style>
