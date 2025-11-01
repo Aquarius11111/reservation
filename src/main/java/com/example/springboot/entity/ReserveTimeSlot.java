@@ -3,7 +3,9 @@ package com.example.springboot.entity;
 import lombok.Data;
 
 import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.sql.Time;
+import java.util.Date;
 @Data
 public class ReserveTimeSlot {
     /**
@@ -19,16 +21,19 @@ public class ReserveTimeSlot {
     /**
      * 日期（如 2025-10-01）
      */
+
     private Date reserveDate;
 
     /**
      * 开始时间（如 08:00:00）
      */
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Shanghai")
     private Date startTime;
 
     /**
      * 结束时间（如 09:00:00）
      */
+    @JsonFormat(pattern = "HH:mm:ss", timezone = "Asia/Shanghai")
     private Date endTime;
 
     /**
