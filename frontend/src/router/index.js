@@ -64,6 +64,37 @@ const router = createRouter({
           component: () => import('../views/counselor/Settings.vue')
         }
       ]
+    },
+    // 管理员端路由
+    {
+      path: '/admin',
+      component: () => import('../views/AdminLayout.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/admin/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'adminDashboard',
+          component: () => import('../views/admin/Dashboard.vue')
+        },
+        {
+          path: 'schedule',
+          name: 'adminSchedule',
+          component: () => import('../views/admin/ScheduleManage.vue')
+        },
+        {
+          path: 'counselors',
+          name: 'adminCounselors',
+          component: () => import('../views/admin/CounselorManage.vue')
+        },
+        {
+          path: 'students',
+          name: 'adminStudents',
+          component: () => import('../views/admin/StudentManage.vue')
+        }
+      ]
     }
   ],
 })

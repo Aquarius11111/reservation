@@ -7,6 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   baseURL: 'http://192.168.43.187:9090',
+  // baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6333433',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -460,6 +461,46 @@ export const reportAPI = {
 }
 
 /**
+ * 排班管理相关API接口
+ */
+export const scheduleAPI = {
+  /**
+   * 添加排班
+   * @param {Object}  params scheduleData 排班数据：{counselorId, reserveDate, startTime, endTime}
+   */
+  addSchedule(scheduleData) {
+    return request('/reserveTimeSlot/add', {
+      method: 'POST',
+      params: scheduleData
+    })
+  },
+
+  /**
+   * 获取排班列表
+   * @param {Object} params 查询参数：{counselorId?, pageNum?, pageSize?}（均为可选）
+   */
+  getScheduleList(params) {
+    return request('/reserveTimeSlot/listByCounselor', {
+      method: 'GET',
+      params
+    })
+  },
+
+  /**
+   * 删除排班
+   * @param {number} reserveTimeId 排班ID
+   */
+  deleteSchedule(reserveTimeId) {
+    return request('/api/reserve/time/delete-batch', {
+      method: 'POST',
+      data: {
+        reserveTimeIdList: [reserveTimeId]
+      }
+    })
+  }
+}
+
+/**
  * 通用API工具函数
  */
 export const apiUtils = {
@@ -545,6 +586,7 @@ export default {
   counselorAPI,
   systemAPI,
   reportAPI,
+  scheduleAPI,
   apiUtils,
   request
 }
