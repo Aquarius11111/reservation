@@ -334,4 +334,48 @@ public class ReserveTimeSlotServiceImpl implements ReserveTimeSlotService {
         int deleted = reserveTimeSlotMapper.deleteBatchIds(timeIdList);
         return RESP.ok("成功删除 " + deleted + " 条排班记录");
     }
+
+    @Override
+    public RESP listSlotsNext7Days(Date startDate) {
+        try {
+            // 1. 计算后7天的日期
+            LocalDate startLocal = startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endLocal = startLocal.plusDays(7);
+
+            Date endDate = Date.from(endLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            // 2. 查询数据库
+            List<ReserveTimeSlot> slots = reserveTimeSlotMapper.selectSlotsWithin7Days(startDate, endDate);
+
+            // 3. 封装结果
+            SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm:ss");
+            List<Map<String, Object>> resultList = new ArrayList<>();
+
+            for (ReserveTimeSlot slot : slots) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("reserveTimeId", slot.getReserveTimeId());
+                map.put("counselorId", slot.getCounselorId());
+                map.put("reserveDate", slot.getReserveDate() != null ? dateFmt.format(slot.getReserveDate()) : null);
+                map.put("startTime", slot.getStartTime() != null ? timeFmt.format(slot.getStartTime()) : null);
+                map.put("endTime", slot.getEndTime() != null ? timeFmt.format(slot.getEndTime()) : null);
+                map.put("isOccupied", slot.getIsOccupied());
+                map.put("studentId", slot.getStudentId());
+                resultList.add(map);
+            }
+
+            Map<String, Object> respData = new HashMap<>();
+            respData.put("startDate", dateFmt.format(startDate));
+            respData.put("endDate", dateFmt.format(endDate));
+            respData.put("total", resultList.size());
+            respData.put("slots", resultList);
+
+            return RESP.ok(respData);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return RESP.error("查询未来7天排班失败：" + e.getMessage());
+        }
+    }
+
 }
