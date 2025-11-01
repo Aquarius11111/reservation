@@ -21,10 +21,7 @@ public class ExceptionHandle {
     @ExceptionHandler(value = ServiceException.class)
     public Result serviceExceptionError(ServiceException e){
         log.error("业务异常", e);
-        String code = e.getCode();
-        if(!code.isEmpty()){
-            return Result.error(code, e.getMessage());
-        }
-        return Result.error(e.getMessage());
+        Integer code = e.getCode();
+        return Result.error(code, e.getMessage());
     }
 }

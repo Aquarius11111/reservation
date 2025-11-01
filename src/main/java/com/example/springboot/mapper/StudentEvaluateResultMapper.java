@@ -1,10 +1,7 @@
 package com.example.springboot.mapper;
 
 import com.example.springboot.entity.StudentEvaluateResult;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springboot.mapper.UserMapper">
+    <!-- 查询登录用户信息（不含密码） -->
+    <select id="selectLoginUserByUserId" parameterType="String" resultType="com.example.springboot.dto.LoginResponseDTO">
+        SELECT
+            user_id AS userId,
+            user_name AS userName,
+            user_role AS userRole
+        FROM sys_user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 查询用户密码（仅用于比对） -->
+    <select id="selectPasswordByUserId" parameterType="String" resultType="String">
+        SELECT password
+        FROM sys_user
+        WHERE user_id = #{userId}
+    </select>
+</mapper>

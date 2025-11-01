@@ -4,9 +4,9 @@ import lombok.Data;
 
 @Data
 public class Result {
-    private static final String SUCCESS_CODE = "200";
-    private static final String ERROR_CODE = "-1";
-    private String code;
+    private static final Integer SUCCESS_CODE = 200;
+    private static final Integer ERROR_CODE =-1;
+    private Integer code;
     private Object data;
     private String msg;
 
@@ -31,7 +31,7 @@ public class Result {
         return result;
     }
     //返回失败，传出出错码和错误信息
-    public static Result error(String code,String msg){
+    public static Result error(Integer code,String msg){
         Result result = new Result();
         result.setCode(code);
         result.setMsg(msg);
