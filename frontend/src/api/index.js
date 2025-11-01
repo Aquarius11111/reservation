@@ -2,20 +2,72 @@
  * API接口封装文件
  * 包含所有后端接口的统一管理
  */
+import axios from 'axios'
 
-// API基础配置
-const API_CONFIG = {
-  // 开发环境 - 使用Apifox Mock服务
+// 创建axios实例
+const apiClient = axios.create({
   baseURL: 'http://192.168.43.187:9090',
-  
-  // 生产环境（示例）
-  // baseURL: 'https://your-production-domain.com',
-  
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
   }
-}
+})
+
+// 请求拦截器
+apiClient.interceptors.request.use(
+  (config) => {
+    // 可以在这里添加token等认证信息
+    // const token = localStorage.getItem('token')
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`
+    // }
+    return config
+  },
+  (error) => {
+    console.error('请求拦截器错误:', error)
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+apiClient.interceptors.response.use(
+  (response) => {
+    // 直接返回响应数据
+    return {
+      success: true,
+      data: response.data,
+      status: response.status
+    }
+  },
+  (error) => {
+    console.error('API请求失败:', error)
+    
+    // 处理错误响应
+    if (error.response) {
+      // 服务器返回了错误状态码
+      return {
+        success: false,
+        error: error.response.data?.message || `HTTP error! status: ${error.response.status}`,
+        data: error.response.data,
+        status: error.response.status
+      }
+    } else if (error.request) {
+      // 请求已发出但没有收到响应
+      return {
+        success: false,
+        error: '网络错误，请检查网络连接',
+        data: null
+      }
+    } else {
+      // 其他错误
+      return {
+        success: false,
+        error: error.message || '请求失败',
+        data: null
+      }
+    }
+  }
+)
 
 /**
  * 通用的API请求函数
@@ -23,59 +75,21 @@ const API_CONFIG = {
  * @param {Object} options 请求选项
  * @returns {Promise} API响应
  */
-async function request(url, options = {}) {
-  const { method = 'GET', data, params } = options
+export async function request(url, options = {}) {
+  const { method = 'GET', data, params, ...restOptions } = options
   
-  // 构建完整的URL
-  const fullUrl = `${API_CONFIG.baseURL}${url}`
-  
-  // 构建请求配置
-  const config = {
+  const response = await apiClient.request({
+    url,
     method,
-    headers: {
-      ...API_CONFIG.headers,
-      ...options.headers
-    },
-    timeout: API_CONFIG.timeout,
-    ...options
-  }
+    data,
+    params,
+    ...restOptions
+  }).catch(error => {
+    // 错误已经在拦截器中处理并返回对象
+    return error
+  })
   
-  // 处理GET请求参数
-  if (method === 'GET' && params) {
-    const urlParams = new URLSearchParams(params)
-    const separator = url.includes('?') ? '&' : '?'
-    config.url = `${fullUrl}${separator}${urlParams.toString()}`
-  } else {
-    config.url = fullUrl
-    
-    // 处理非GET请求的数据
-    if (data) {
-      config.body = JSON.stringify(data)
-    }
-  }
-  
-  try {
-    const response = await fetch(config.url, config)
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    
-    const result = await response.json()
-    
-    return {
-      success: true,
-      data: result,
-      status: response.status
-    }
-  } catch (error) {
-    console.error('API请求失败:', error)
-    return {
-      success: false,
-      error: error.message,
-      data: null
-    }
-  }
+  return response
 }
 
 /**

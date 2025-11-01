@@ -97,6 +97,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessageBox, ElMessage } from 'element-plus'
 
 // 路由
 const router = useRouter()
@@ -153,22 +154,22 @@ const closeChangePasswordDialog = () => {
 const confirmChangePassword = async () => {
   // 验证表单
   if (!passwordForm.currentPassword) {
-    alert('请输入当前密码')
+    ElMessage.warning('请输入当前密码')
     return
   }
   
   if (!passwordForm.newPassword) {
-    alert('请输入新密码')
+    ElMessage.warning('请输入新密码')
     return
   }
   
   if (passwordForm.newPassword.length < 6) {
-    alert('新密码长度不能少于6位')
+    ElMessage.warning('新密码长度不能少于6位')
     return
   }
   
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    alert('两次输入的新密码不一致')
+    ElMessage.error('两次输入的新密码不一致')
     return
   }
 
@@ -181,10 +182,10 @@ const confirmChangePassword = async () => {
     // 模拟API调用
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    alert('密码修改成功')
+    ElMessage.success('密码修改成功')
     closeChangePasswordDialog()
   } catch (error) {
-    alert('密码修改失败，请重试')
+    ElMessage.error('密码修改失败，请重试')
     console.error('修改密码失败:', error)
   } finally {
     changingPassword.value = false
@@ -192,20 +193,36 @@ const confirmChangePassword = async () => {
 }
 
 // 处理退出登录
-const handleLogout = () => {
+const handleLogout = async () => {
   closeDropdown()
   
-  if (confirm('确定要退出登录吗？')) {
+  try {
+    await ElMessageBox.confirm(
+      '确定要退出登录吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+        center: false
+      }
+    )
+    
     // 这里调用退出登录的API
     // await userAPI.logout()
     
     // 清除本地存储的用户信息
     localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
+    localStorage.removeItem('userRole')
     localStorage.removeItem('userInfo')
     
-    // 跳转到登录页面或首页
-    router.push('/')
-    alert('已退出登录')
+    // 跳转到登录页面
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  } catch (error) {
+    // 用户点击取消，不做任何操作
   }
 }
 
@@ -225,10 +242,10 @@ const handleClickOutside = (event) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   
-  // 从本地存储获取用户信息
-  const savedUserInfo = localStorage.getItem('userInfo')
-  if (savedUserInfo) {
-    Object.assign(userInfo, JSON.parse(savedUserInfo))
+  // 从本地存储获取用户信息（登录后保存的userName）
+  const userName = localStorage.getItem('userName')
+  if (userName) {
+    userInfo.name = userName
   }
 })
 
