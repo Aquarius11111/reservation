@@ -17,4 +17,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      // 代理静态资源请求到后端服务器
+      '/static': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+      }
+    }
+  }
 })

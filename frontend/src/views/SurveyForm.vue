@@ -398,7 +398,7 @@ const latestAssessmentTime = ref(null)
 onMounted(async () => {
   try {
     // 调用后端接口获取最近一次测评时间
-    const response = await surveyAPI.getLatestAssessmentTime('10001') // 实际项目中从用户登录状态获取
+    const response = await surveyAPI.getLatestAssessmentTime('10003') // 实际项目中从用户登录状态获取
     if (response.success && response.data) {
       latestAssessmentTime.value = response.data.latestTime || null
       isFirstFill.value = !latestAssessmentTime.value
@@ -486,7 +486,7 @@ const submitSurvey = async () => {
     const submitData = apiUtils.buildSurveyData(
       isFirstFill.value ? basicSurvey : null,
       answers.value,
-      '10001' // 实际项目中从用户登录状态获取学生ID
+      '10003' // 实际项目中从用户登录状态获取学生ID
     )
     
     console.log('提交问卷数据:', submitData)
@@ -520,7 +520,7 @@ const submitSurvey = async () => {
 const saveDraft = async () => {
   try {
     const draftData = {
-      studentId: '10001', // 实际项目中从用户登录状态获取
+      studentId: '10003', // 实际项目中从用户登录状态获取
       isFirstFill: isFirstFill.value,
       currentStep: currentStep.value,
       latestAssessmentTime: latestAssessmentTime.value,

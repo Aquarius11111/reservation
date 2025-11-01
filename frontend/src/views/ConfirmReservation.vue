@@ -188,7 +188,7 @@ export default {
       try {
         // 构建创建预约的请求数据
         const requestData = {
-          studentId: "S2023001", // 可以从token解析或用户信息获取
+          studentId: "10003", // 可以从token解析或用户信息获取
           counselorId: this.counselorId,
           reserveTimeId: this.selectedTimeSlot.reserveTimeId,
           consultTopic: this.consultReason

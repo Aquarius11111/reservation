@@ -204,7 +204,7 @@ const loading = ref(false)
 const error = ref(null)
 
 // 咨询师ID（实际应用中应该从用户登录状态获取）
-const counselorId = ref('C001')
+const counselorId = ref('11001')
 
 // 对话框相关
 const showConfirmDialog = ref(false)
@@ -266,6 +266,15 @@ const getStatusText = (status) => {
     4: '已爽约'
   }
   return statusMap[status] || '未知状态'
+}
+
+// 获取今日日期字符串（YYYY-MM-DD）
+const getTodayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 // 判断是否可以操作
@@ -486,9 +495,8 @@ const handleFilterChange = () => {
 }
 
 onMounted(() => {
-
-
-  
+  // 默认将日期筛选设为今天
+  dateFilter.value = getTodayDateString()
   // 初始加载数据
   loadAppointments()
 })

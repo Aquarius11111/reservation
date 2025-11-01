@@ -55,14 +55,14 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
 // 侧边栏折叠状态
 const isCollapsed = ref(false)
 
 // 用户信息
 const userInfo = reactive({
-  name: '李老师',
+  name: '',
   role: '心理咨询师',
   avatar: null
 })
@@ -81,11 +81,6 @@ const menuItems = [
     path: '/counselor/appointments',
     name: '预约管理',
     icon: '📅'
-  },
-  {
-    path: '/counselor/schedule',
-    name: '时间安排',
-    icon: '⏰'
   },
   {
     path: '/counselor/reports',
@@ -108,6 +103,14 @@ const toggleCollapse = () => {
 const handleAvatarError = (event) => {
   event.target.src = defaultAvatar
 }
+
+// 页面加载时从localStorage获取用户信息
+onMounted(() => {
+  const userName = localStorage.getItem('userName')
+  if (userName) {
+    userInfo.name = userName
+  }
+})
 </script>
 
 <style scoped>

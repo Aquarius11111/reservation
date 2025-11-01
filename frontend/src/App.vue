@@ -1,11 +1,17 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
+import { computed } from 'vue'
 import Header from './components/Header.vue'
+
+const route = useRoute()
+
+// 判断是否在登录页面
+const isLoginPage = computed(() => route.path === '/login')
 </script>
 
 <template>
   <div id="app">
-    <Header />
+    <Header v-if="!isLoginPage" />
     <main class="main-content">
       <RouterView />
     </main>
