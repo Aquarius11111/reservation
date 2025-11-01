@@ -103,4 +103,14 @@ public interface ReserveTimeSlotMapper {
             @Param("reserveDate") java.util.Date reserveDate,
             @Param("startTime") String startTime,
             @Param("counselorId") String counselorId);
+
+    List<ReserveTimeSlot> selectByCounselorIdLike(
+            @Param("counselorId") String counselorId,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize
+    );
+
+    int countByCounselorIdLike(@Param("counselorId") String counselorId);
+
+
 }
