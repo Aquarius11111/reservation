@@ -33,4 +33,9 @@ public interface ReserveTimeSlotService {
      */
     RESP listSlotsByCounselorId(String counselorIdPattern, int pageNum, int pageSize);
 
+    /**
+     * 查询当前日期及后7天的排班记录
+     */
+    RESP listSlotsNext7Days(Date startDate);
+
 }
