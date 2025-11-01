@@ -35,4 +35,11 @@ public class SurveyController {
         return ResponseEntity.ok(surveyService.getResultsByStudent(studentId));
     }
 
+    // 4️⃣ 新增：查看某次报告详情
+    @GetMapping("/result/detail")
+    public ResponseEntity<?> getResultDetail(@RequestParam String studentId,
+                                             @RequestParam Long resultId) {
+        return ResponseEntity.ok(surveyService.getResultDetail(studentId, resultId));
+    }
+
 }
