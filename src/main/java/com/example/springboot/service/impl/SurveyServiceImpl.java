@@ -64,6 +64,9 @@ public class SurveyServiceImpl implements SurveyService {
         return response;
     }
 
+    /**
+     * 再次测评：每次都生成新的测评记录
+     */
     @Override
     public SurveyResponse handleRetestSurvey(RetestSurveyRequest req) {
         // 1. 保存SCL-90答卷
@@ -83,22 +86,28 @@ public class SurveyServiceImpl implements SurveyService {
         result.setAnalysis(ds.getAnalysis());
         result.setSuggestion(ds.getSuggestion());
 
-        // 4. 判断是否已有记录（有则更新，无则新增）
-        StudentEvaluateResult existing = resultMapper.findLatestByStudentId(assessment.getStudentId());
-        if (existing == null) {
-            resultMapper.insertResult(result);
-        } else {
-            resultMapper.updateResult(result);
-        }
+        // 4. ✅ 不再更新，而是直接新增记录
+        resultMapper.insertResult(result);
 
-        // 5. 返回封装结果
+        // 5. 封装返回
         SurveyResponse response = new SurveyResponse();
         response.setResult(result);
         return response;
     }
 
+    /**
+     * 获取学生的所有测评结果（按时间倒序）
+     */
     @Override
     public List<StudentEvaluateResult> getResultsByStudent(String studentId) {
         return resultMapper.findResultByStudentId(studentId);
+    }
+
+    /**
+     * ✅ 新增：根据学生ID和结果ID查询单次测评详情
+     */
+    @Override
+    public StudentEvaluateResult getResultDetail(String studentId, Long resultId) {
+        return resultMapper.findResultDetail(studentId, resultId);
     }
 }
