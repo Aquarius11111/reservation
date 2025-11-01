@@ -5,6 +5,7 @@ import com.example.springboot.dto.SelectedTimeDTO;
 import com.example.springboot.entity.ReserveTimeSlot;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.Date;
 import java.util.List;
@@ -112,5 +113,12 @@ public interface ReserveTimeSlotMapper {
 
     int countByCounselorIdLike(@Param("counselorId") String counselorId);
 
-
+    /**
+     * 查询指定日期及后7天的排班记录
+     */
+    @Select("SELECT * FROM reserve_time_slot " +
+            "WHERE reserve_date BETWEEN #{startDate} AND #{endDate} " +
+            "ORDER BY reserve_date ASC, start_time ASC")
+    List<ReserveTimeSlot> selectSlotsWithin7Days(@Param("startDate") Date startDate,
+                                                 @Param("endDate") Date endDate);
 }
