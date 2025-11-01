@@ -66,5 +66,14 @@ public class ReserveTimeSlotController {
             @RequestParam(defaultValue = "10") int pageSize) {
         return reserveTimeSlotService.listSlotsByCounselorId(counselorId, pageNum, pageSize);
     }
+ /**
+     * 查询当前日期及后7天的排班记录
+     */
+    @GetMapping("/listNext7Days")
+    public RESP listNext7Days(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date currentDate) {
+        return reserveTimeSlotService.listSlotsNext7Days(currentDate);
+    }
 
 }
+
