@@ -11,5 +11,7 @@ public interface SurveyService {
     SurveyResponse handleFirstSurvey(FirstSurveyRequest req);
     SurveyResponse handleRetestSurvey(RetestSurveyRequest req);
     List<StudentEvaluateResult> getResultsByStudent(String studentId);
+    StudentEvaluateResult getResultDetail(String studentId, Long resultId);
 }
+
 
