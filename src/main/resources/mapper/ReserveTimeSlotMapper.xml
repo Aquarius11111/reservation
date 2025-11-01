@@ -219,4 +219,20 @@
           AND DATE_FORMAT(start_time, '%H:%i:%s') = #{startTime}
           AND counselor_id = #{counselorId}
     </select>
+
+    <!-- 分页查询咨询师排班，支持工号模糊搜索 -->
+    <select id="selectByCounselorIdLike" resultMap="BaseResultMap">
+        SELECT *
+        FROM reserve_time_slot
+        WHERE counselor_id LIKE CONCAT('%', #{counselorId}, '%')
+        ORDER BY reserve_date ASC, start_time ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计分页查询总数 -->
+    <select id="countByCounselorIdLike" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM reserve_time_slot
+        WHERE counselor_id LIKE CONCAT('%', #{counselorId}, '%')
+    </select>
 </mapper>
