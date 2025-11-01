@@ -37,9 +37,9 @@
         <div class="card-icon">📊</div>
         <h3 class="card-title">查看报告</h3>
         <p class="card-description">查看您的心理健康评估报告和建议</p>
-        <button class="card-button disabled">
-          即将开放
-        </button>
+        <router-link to="/report-results" class="card-button">
+          查看报告
+        </router-link>
       </div>
     </div>
   </div>

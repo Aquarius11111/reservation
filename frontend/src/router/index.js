@@ -34,6 +34,11 @@ const router = createRouter({
       name: 'reservationList',
       component: () => import('../views/ReservationList.vue')
     },
+    {
+      path: '/report-results',
+      name: 'reportResults',
+      component: () => import('../views/ReportResults.vue')
+    },
     // 咨询师端路由
     {
       path: '/counselor',
