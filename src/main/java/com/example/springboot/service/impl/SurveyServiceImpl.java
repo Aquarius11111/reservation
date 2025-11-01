@@ -16,7 +16,7 @@ import com.example.springboot.utils.DeepSeekUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;  // ✅ 改成 java.sql.Date，避免 setCreatedAt 报错
+import java.util.Date; // ✅ 改成 java.sql.Date，避免 setCreatedAt 报错
 import java.util.List;
 
 @Service
@@ -35,58 +35,65 @@ public class SurveyServiceImpl implements SurveyService {
     public SurveyResponse handleFirstSurvey(FirstSurveyRequest req) {
         // 1. 保存基本信息
         StudentBasicSurvey survey = req.getBasicSurvey();
-        survey.setCreatedAt(new Date(System.currentTimeMillis()));
+        survey.setCreatedAt(new Date());
         studentBasicSurveyMapper.insert(survey);
 
-        // 2. 保存 SCL-90 答卷
+        // 2. 保存SCL-90答卷
         Scl90Assessment assessment = req.getScl90Assessment();
-        assessment.setAssessmentDate(new Date(System.currentTimeMillis()));
-        assessment.setCreatedAt(new Date(System.currentTimeMillis()));
+        assessment.setAssessmentDate(new Date());
+        assessment.setCreatedAt(new Date());
         scl90Mapper.insertAssessment(assessment);
 
         // 3. 计算得分
         StudentEvaluateResult result = Scl90Calculator.calculate(assessment);
         result.setStudentId(assessment.getStudentId());
         result.setAssessmentId(assessment.getAssessmentId());
-        result.setCreatedAt(new Date(System.currentTimeMillis()));
-        resultMapper.insertResult(result);  // 此时所有字段都不为 null
+        result.setCreatedAt(new Date());
 
-        // 4. 调用 AI
+        // 4. 调用AI生成分析与建议
         DeepSeekResponse ds = DeepSeekUtil.analyze(result, assessment);
+        result.setAnalysis(ds.getAnalysis());
+        result.setSuggestion(ds.getSuggestion());
 
-        // 5. 封装返回
+        // 5. 存入数据库
+        resultMapper.insertResult(result);
+
+        // 6. 返回封装结果（只返回一次结果对象即可）
         SurveyResponse response = new SurveyResponse();
         response.setResult(result);
-        response.setAnalysis(ds.getAnalysis());
-        response.setSuggestion(ds.getSuggestion());
-
         return response;
     }
 
     @Override
     public SurveyResponse handleRetestSurvey(RetestSurveyRequest req) {
-        // 1. 保存 SCL-90 答卷
+        // 1. 保存SCL-90答卷
         Scl90Assessment assessment = req.getScl90Assessment();
-        assessment.setAssessmentDate(new Date(System.currentTimeMillis()));
-        assessment.setCreatedAt(new Date(System.currentTimeMillis()));
+        assessment.setAssessmentDate(new Date());
+        assessment.setCreatedAt(new Date());
         scl90Mapper.insertAssessment(assessment);
 
         // 2. 计算得分
         StudentEvaluateResult result = Scl90Calculator.calculate(assessment);
         result.setStudentId(assessment.getStudentId());
         result.setAssessmentId(assessment.getAssessmentId());
-        result.setCreatedAt(new Date(System.currentTimeMillis()));
-        resultMapper.insertResult(result);  // 此时所有字段都不为 null
+        result.setCreatedAt(new Date());
 
-        // 3. 调用 AI
+        // 3. 调用AI生成分析与建议
         DeepSeekResponse ds = DeepSeekUtil.analyze(result, assessment);
+        result.setAnalysis(ds.getAnalysis());
+        result.setSuggestion(ds.getSuggestion());
 
-        // 4. 封装返回
+        // 4. 判断是否已有记录（有则更新，无则新增）
+        StudentEvaluateResult existing = resultMapper.findLatestByStudentId(assessment.getStudentId());
+        if (existing == null) {
+            resultMapper.insertResult(result);
+        } else {
+            resultMapper.updateResult(result);
+        }
+
+        // 5. 返回封装结果
         SurveyResponse response = new SurveyResponse();
         response.setResult(result);
-        response.setAnalysis(ds.getAnalysis());
-        response.setSuggestion(ds.getSuggestion());
-
         return response;
     }
 
