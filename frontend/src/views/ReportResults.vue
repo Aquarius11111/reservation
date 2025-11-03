@@ -68,9 +68,25 @@ const fetchReportList = async () => {
   loading.value = true
   
   try {
-    // 获取当前登录学生的ID
-    const studentId = localStorage.getItem('userId')
+    // 获取当前登录学生的ID（统一从对象中读取）
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (!userInfoStr) {
+      ElMessage.error('请先登录')
+      router.push('/login')
+      return
+    }
     
+    let userInfo
+    try {
+      userInfo = JSON.parse(userInfoStr)
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+      ElMessage.error('用户信息格式错误，请重新登录')
+      router.push('/login')
+      return
+    }
+    
+    const studentId = userInfo.userId
     if (!studentId) {
       ElMessage.error('请先登录')
       router.push('/login')

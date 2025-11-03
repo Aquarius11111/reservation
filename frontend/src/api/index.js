@@ -6,8 +6,8 @@ import axios from 'axios'
 
 // 创建axios实例
 const apiClient = axios.create({
-  baseURL: 'http://192.168.43.187:9090',
-  // baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6333433',
+  // baseURL: 'http://192.168.43.187:9090',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-default',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -362,7 +362,7 @@ export const systemAPI = {
    * @param {Object} credentials 登录凭证
    */
   login(credentials) {
-    return request('/api/auth/login', {
+    return request('/api/login', {
       method: 'POST',
       data: credentials
     })
