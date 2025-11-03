@@ -6,8 +6,8 @@ import axios from 'axios'
 
 // 创建axios实例
 const apiClient = axios.create({
-  baseURL: 'http://192.168.43.187:9090',
-  // baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6333433',
+  // baseURL: 'http://192.168.43.187:9090',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -137,6 +137,17 @@ export const surveyAPI = {
   getSurveyResult(studentId) {
     return request(`/api/survey/result/${studentId}`, {
       method: 'GET'
+    })
+  },
+
+  /**
+   * 获取测评结果详情
+   * @param {Object} params 查询参数：{ studentId, resultId }
+   */
+  getSurveyResultDetail(params) {
+    return request('/api/survey/result/detail', {
+    method: 'GET',
+      params
     })
   }
 }
@@ -362,7 +373,7 @@ export const systemAPI = {
    * @param {Object} credentials 登录凭证
    */
   login(credentials) {
-    return request('/api/auth/login', {
+    return request('/api/login', {
       method: 'POST',
       data: credentials
     })

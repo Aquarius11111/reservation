@@ -39,6 +39,12 @@ const router = createRouter({
       name: 'reportResults',
       component: () => import('../views/ReportResults.vue')
     },
+    {
+      path: '/report-results/:id',
+      name: 'reportDetail',
+      component: () => import('../views/ReportDetail.vue'),
+      props: true
+    },
     // 咨询师端路由
     {
       path: '/counselor',

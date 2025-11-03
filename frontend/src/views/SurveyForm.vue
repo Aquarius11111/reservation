@@ -246,12 +246,70 @@
       <span class="progress-text">{{ completedQuestions }}/{{ totalQuestions }} 题已完成</span>
     </div>
   </div>
+  
+  <!-- 提交成功对话框（模仿预约成功样式） -->
+  <div v-if="showSuccessDialog" class="success-overlay" @click="goHomeNow">
+    <div class="success-dialog" @click.stop>
+      <div class="success-icon">✅</div>
+      <h3 class="success-title">提交成功</h3>
+      <p class="success-desc">感谢您的配合，系统将根据结果提供后续服务</p>
+      <button class="success-btn" @click="goHomeNow">返回首页（{{ successCountdown }}s）</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import QuestionItem from '../components/QuestionItem.vue'
 import { surveyAPI, apiUtils } from '../api/index.js'
+
+// 辅助函数：从localStorage获取用户信息
+const getUserInfo = () => {
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (!userInfoStr) {
+    return null
+  }
+  try {
+    return JSON.parse(userInfoStr)
+  } catch (e) {
+    console.error('解析用户信息失败:', e)
+    return null
+  }
+}
+
+// 提交成功对话框与倒计时
+const router = useRouter()
+const showSuccessDialog = ref(false)
+const successCountdown = ref(3)
+let countdownTimer = null
+
+const startSuccessCountdown = () => {
+  // 清理可能存在的计时器
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  successCountdown.value = 3
+  countdownTimer = setInterval(() => {
+    successCountdown.value -= 1
+    if (successCountdown.value <= 0) {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+      showSuccessDialog.value = false
+      router.push('/')
+    }
+  }, 1000)
+}
+
+const goHomeNow = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  showSuccessDialog.value = false
+  router.push('/')
+}
 
 // SCL-90量表统一选项
 const scl90Options = [
@@ -390,23 +448,60 @@ const ethnicities = [
   '塔塔尔族', '独龙族', '赫哲族', '门巴族', '珞巴族', '基诺族'
 ]
 
-// 基于后端返回的最近测评时间判断是否首次
+// 基于localStorage中的两个time字段判断是否首次
 const isLoading = ref(true)
 const isFirstFill = ref(true)
 const latestAssessmentTime = ref(null)
 
 onMounted(async () => {
   try {
-    // 调用后端接口获取最近一次测评时间
-    const response = await surveyAPI.getLatestAssessmentTime('10003') // 实际项目中从用户登录状态获取
-    if (response.success && response.data) {
-      latestAssessmentTime.value = response.data.latestTime || null
-      isFirstFill.value = !latestAssessmentTime.value
+    // 从localStorage获取用户信息（统一从对象中读取）
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (!userInfoStr) {
+      alert('未找到用户信息，请重新登录')
+      isLoading.value = false
+      return
+    }
+    
+    let userInfo
+    try {
+      userInfo = JSON.parse(userInfoStr)
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+      alert('用户信息格式错误，请重新登录')
+      isLoading.value = false
+      return
+    }
+    
+    const studentId = userInfo.userId
+    if (!studentId) {
+      alert('未找到学生ID，请重新登录')
+      isLoading.value = false
+      return
+    }
+
+    // 从用户信息对象中获取两个time字段
+    const lastEvaluateTime = userInfo.lastEvaluateTime
+    const lastCounselTime = userInfo.lastCounselTime
+
+    // 判断两个time是否均为空
+    const isBothTimeEmpty = (!lastEvaluateTime || lastEvaluateTime === 'null' || lastEvaluateTime === '') && 
+                             (!lastCounselTime || lastCounselTime === 'null' || lastCounselTime === '')
+
+    // 如果两个time均为空，代表第一次填写问卷
+    isFirstFill.value = isBothTimeEmpty
+
+    // 设置最新测评时间（用于显示）
+    if (lastEvaluateTime && lastEvaluateTime !== 'null' && lastEvaluateTime !== '') {
+      latestAssessmentTime.value = lastEvaluateTime
+    } else if (lastCounselTime && lastCounselTime !== 'null' && lastCounselTime !== '') {
+      latestAssessmentTime.value = lastCounselTime
     } else {
-      // 接口异常时默认视为首次，避免阻塞填写
-      isFirstFill.value = true
+      latestAssessmentTime.value = null
     }
   } catch (e) {
+    console.error('获取问卷状态失败:', e)
+    // 异常时默认视为首次，避免阻塞填写
     isFirstFill.value = true
   } finally {
     isLoading.value = false
@@ -482,11 +577,19 @@ const submitSurvey = async () => {
   }
   
   try {
+    // 从localStorage获取用户信息（统一从对象中读取）
+    const userInfo = getUserInfo()
+    if (!userInfo || !userInfo.userId) {
+      alert('未找到学生ID，请重新登录')
+      return
+    }
+    const studentId = userInfo.userId
+
     // 构建提交数据
     const submitData = apiUtils.buildSurveyData(
       isFirstFill.value ? basicSurvey : null,
       answers.value,
-      '10003' // 实际项目中从用户登录状态获取学生ID
+      studentId
     )
     
     console.log('提交问卷数据:', submitData)
@@ -497,16 +600,16 @@ const submitSurvey = async () => {
       response = await surveyAPI.submitFirstSurvey(submitData)
     } else {
       // 重测问卷只需要SCL-90数据
-      const retestData = apiUtils.buildRetestSurveyData(answers.value, '10001')
+      const retestData = apiUtils.buildRetestSurveyData(answers.value, studentId)
       response = await surveyAPI.submitRetestSurvey(retestData)
     }
     
     if (response.success) {
-      alert('问卷提交成功！')
       console.log('问卷提交结果:', response.data)
-      
-      // 提交成功后可以跳转到结果页面或首页
-      // router.push('/result') 或 router.push('/')
+      localStorage.removeItem('draftData')
+      // 显示提交成功对话框并开始倒计时
+      showSuccessDialog.value = true
+      startSuccessCountdown()
     } else {
       const errorMsg = apiUtils.getErrorMessage(response)
       alert(`问卷提交失败：${errorMsg}`)
@@ -519,8 +622,16 @@ const submitSurvey = async () => {
 
 const saveDraft = async () => {
   try {
+    // 从localStorage获取用户信息（统一从对象中读取）
+    const userInfo = getUserInfo()
+    if (!userInfo || !userInfo.userId) {
+      alert('未找到学生ID，请重新登录')
+      return
+    }
+    const studentId = userInfo.userId
+
     const draftData = {
-      studentId: '10003', // 实际项目中从用户登录状态获取
+      studentId: studentId,
       isFirstFill: isFirstFill.value,
       currentStep: currentStep.value,
       latestAssessmentTime: latestAssessmentTime.value,
@@ -570,6 +681,60 @@ const formatDate = (iso) => {
   gap: 12px;
   margin: 10px 0 20px;
   color: #6c757d;
+}
+
+/* 提交成功对话框样式（模仿预约成功） */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.success-dialog {
+  width: 90%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.success-title {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.success-desc {
+  margin: 0 0 20px;
+  color: #6c757d;
+}
+
+.success-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.success-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
 }
 
 .fill-status.loading {

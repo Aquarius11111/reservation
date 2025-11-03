@@ -211,11 +211,8 @@ const handleLogout = async () => {
     // 这里调用退出登录的API
     // await userAPI.logout()
     
-    // 清除本地存储的用户信息
+    // 清除本地存储的用户信息（统一清除对象）
     localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('userRole')
     localStorage.removeItem('userInfo')
     
     // 跳转到登录页面
@@ -242,10 +239,17 @@ const handleClickOutside = (event) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   
-  // 从本地存储获取用户信息（登录后保存的userName）
-  const userName = localStorage.getItem('userName')
-  if (userName) {
-    userInfo.name = userName
+  // 从本地存储获取用户信息（统一从对象中读取）
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (userInfoStr) {
+    try {
+      const userInfoData = JSON.parse(userInfoStr)
+      if (userInfoData.userName) {
+        userInfo.name = userInfoData.userName
+      }
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+    }
   }
 })
 

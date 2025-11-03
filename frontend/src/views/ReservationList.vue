@@ -119,8 +119,8 @@ const loading = ref(true)
 const error = ref(null)
 const reservations = ref([])
 
-// 模拟学生ID（实际应用中应该从用户登录状态获取）
-const studentId = ref('10003')
+// 学生ID（从本地登录信息获取）
+const studentId = ref('')
 
 // 取消预约对话框相关
 const showCancelDialogFlag = ref(false)
@@ -255,6 +255,15 @@ const formatDateTime = (dateTime) => {
 
 // 组件挂载时加载数据
 onMounted(() => {
+  try {
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (userInfoStr) {
+      const userInfo = JSON.parse(userInfoStr)
+      if (userInfo && userInfo.userId) {
+        studentId.value = userInfo.userId
+      }
+    }
+  } catch {}
   loadReservations()
 })
 </script>

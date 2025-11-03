@@ -159,11 +159,18 @@ const loadStats = async () => {
   statsData.monthlySessions = 342
 }
 
-// 页面加载时获取用户信息
+// 页面加载时获取用户信息（统一从对象中读取）
 onMounted(() => {
-  const userName = localStorage.getItem('userName')
-  if (userName) {
-    userInfo.name = userName
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (userInfoStr) {
+    try {
+      const userInfoData = JSON.parse(userInfoStr)
+      if (userInfoData.userName) {
+        userInfo.name = userInfoData.userName
+      }
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+    }
   }
   
   // 加载统计数据

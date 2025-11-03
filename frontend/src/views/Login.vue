@@ -82,10 +82,17 @@ const loginForm = reactive({
 
 // 页面加载时，如果有保存的userId则自动填充
 onMounted(() => {
-  const savedUserId = localStorage.getItem('userId')
-  if (savedUserId) {
-    loginForm.userId = savedUserId
-    rememberMe.value = true
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (userInfoStr) {
+    try {
+      const userInfo = JSON.parse(userInfoStr)
+      if (userInfo.userId) {
+        loginForm.userId = userInfo.userId
+        rememberMe.value = true
+      }
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+    }
   }
 })
 
@@ -125,17 +132,22 @@ const handleLogin = async () => {
     loading.value = false
 
     if (response.success) {
-      // 后端返回的数据结构: { code, message, data }
+      // 后端返回的数据结构: { code, msg, data }
       const result = response.data
       
       if (result.code === 200) {
-        ElMessage.success(result.message || '登录成功！')
+        ElMessage.success(result.msg || '登录成功！')
         
-        // 保存用户信息到localStorage
+        // 保存用户信息到localStorage（统一存储为一个对象）
         if (result.data) {
-          localStorage.setItem('userId', result.data.userId)
-          localStorage.setItem('userName', result.data.userName)
-          localStorage.setItem('userRole', result.data.userRole)
+          const userInfo = {
+            userId: result.data.userId,
+            userName: result.data.userName,
+            userRole: result.data.userRole,
+            lastEvaluateTime: result.data.lastEvaluateTime,
+            lastCounselTime: result.data.lastCounselTime
+          }
+          localStorage.setItem('userInfo', JSON.stringify(userInfo))
         }
 
         // 根据userRole跳转到不同页面
@@ -150,7 +162,7 @@ const handleLogin = async () => {
           router.push('/')
         }
       } else {
-        ElMessage.error(result.message || '登录失败，请重试')
+        ElMessage.error(result.msg || '登录失败，请重试')
       }
     } else {
       ElMessage.error(response.error || '登录失败，请重试')
