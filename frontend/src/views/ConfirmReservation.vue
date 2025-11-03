@@ -119,7 +119,8 @@ export default {
       submitting: false,
       selectedTimeSlot: null, // 选中的具体时段
       showSuccessDialog: false, // 显示成功对话框
-      countdown: 3 // 倒计时
+      countdown: 3, // 倒计时
+      studentId: ''
     }
   },
   async mounted() {
@@ -139,6 +140,17 @@ export default {
       console.error('未找到预约数据，请重新选择咨询师')
       this.loading = false
     }
+
+    // 从本地获取学生ID
+    try {
+      const userInfoStr = localStorage.getItem('userInfo')
+      if (userInfoStr) {
+        const userInfo = JSON.parse(userInfoStr)
+        if (userInfo && userInfo.userId) {
+          this.studentId = userInfo.userId
+        }
+      }
+    } catch {}
   },
   methods: {
     async loadCounselorInfo() {
@@ -188,7 +200,7 @@ export default {
       try {
         // 构建创建预约的请求数据
         const requestData = {
-          studentId: "10003", // 可以从token解析或用户信息获取
+          studentId: this.studentId,
           counselorId: this.counselorId,
           reserveTimeId: this.selectedTimeSlot.reserveTimeId,
           consultTopic: this.consultReason

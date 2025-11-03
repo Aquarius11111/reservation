@@ -165,6 +165,10 @@
           </div>
         </div>
       </div>
+      <!-- 返回首页按钮（与 ReservationList 保持一致） -->
+      <div class="back-container">
+        <router-link to="/" class="back-button">← 返回首页</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -365,6 +369,19 @@ export default {
   background-color: #f8f9fa;
   min-height: 100vh;
 }
+
+.back-container { text-align: center; margin-top: 20px; }
+.back-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background .3s ease;
+}
+.back-button:hover { background: #5a6268; }
 
 .container {
   max-width: 1000px;

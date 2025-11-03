@@ -125,8 +125,8 @@ const formatDateTime = (dateTimeStr) => {
 
 // 查看详情
 const handleViewDetail = (report) => {
-  ElMessage.info('详情功能开发中...')
-  console.log('查看报告详情:', report)
+  // 跳转到详情页
+  router.push(`/report-results/${report.resultId}`)
 }
 
 onMounted(() => {
