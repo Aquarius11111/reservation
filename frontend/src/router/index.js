@@ -34,6 +34,11 @@ const router = createRouter({
       name: 'reservationList',
       component: () => import('../views/ReservationList.vue')
     },
+    {
+      path: '/report-results',
+      name: 'reportResults',
+      component: () => import('../views/ReportResults.vue')
+    },
     // 咨询师端路由
     {
       path: '/counselor',
@@ -62,6 +67,37 @@ const router = createRouter({
           path: 'settings',
           name: 'counselorSettings',
           component: () => import('../views/counselor/Settings.vue')
+        }
+      ]
+    },
+    // 管理员端路由
+    {
+      path: '/admin',
+      component: () => import('../views/AdminLayout.vue'),
+      children: [
+        {
+          path: '',
+          redirect: '/admin/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'adminDashboard',
+          component: () => import('../views/admin/Dashboard.vue')
+        },
+        {
+          path: 'schedule',
+          name: 'adminSchedule',
+          component: () => import('../views/admin/ScheduleManage.vue')
+        },
+        {
+          path: 'counselors',
+          name: 'adminCounselors',
+          component: () => import('../views/admin/CounselorManage.vue')
+        },
+        {
+          path: 'students',
+          name: 'adminStudents',
+          component: () => import('../views/admin/StudentManage.vue')
         }
       ]
     }

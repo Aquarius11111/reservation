@@ -141,8 +141,11 @@ const handleLogin = async () => {
         // 根据userRole跳转到不同页面
         // userRole = 1: 学生 -> / (home)
         // userRole = 2: 咨询师 -> /counselor/dashboard
+        // userRole = 3: 管理员 -> /admin/dashboard
         if (result.data && result.data.userRole === 2) {
           router.push('/counselor/dashboard')
+        } else if (result.data && result.data.userRole === 3) {
+          router.push('/admin/dashboard')
         } else {
           router.push('/')
         }
