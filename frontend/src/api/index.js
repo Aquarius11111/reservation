@@ -7,7 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   // baseURL: 'http://192.168.43.187:9090',
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287666',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287865',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -434,12 +434,44 @@ export const counselorInfoAPI = {
   },
 
   /**
+   * 分页查询咨询师列表
+   * @param {Object} params 查询参数：{ pageNum, pageSize, counselorId(可选) }
+   */
+  getCounselorList(params) {
+    return request('/counselor/info/page', {
+      method: 'GET',
+      params: params
+    })
+  },
+
+  /**
    * 更新咨询师信息
    * @param {Object} counselorInfo 咨询师信息
    */
   updateCounselorInfo(counselorInfo) {
     return request('/counselor/info/update', {
       method: 'PUT',
+      data: counselorInfo
+    })
+  },
+
+  /**
+   * 删除咨询师
+   * @param {string} counselorId 咨询师ID
+   */
+  deleteCounselor(counselorId) {
+    return request(`/counselor/info/delete/${counselorId}`, {
+      method: 'DELETE'
+    })
+  },
+
+  /**
+   * 添加咨询师
+   * @param {Object} counselorInfo 咨询师信息
+   */
+  addCounselor(counselorInfo) {
+    return request('/counselor/info/add', {
+      method: 'POST',
       data: counselorInfo
     })
   }
