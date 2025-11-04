@@ -58,4 +58,13 @@ public class CounselorInfoServiceImpl implements CounselorInfoService {
         int count = counselorInfoMapper.countAll();
         return RESP.ok(count);
     }
+
+    @Override
+    public RESP searchCounselors(String keyword, int pageNum, int pageSize) {
+        int offset = (pageNum - 1) * pageSize;
+        List<CounselorInfo> list = counselorInfoMapper.selectPageByKeyword(keyword, offset, pageSize);
+        int total = counselorInfoMapper.countByKeyword(keyword);
+        return RESP.ok(list, pageNum, total);
+    }
+
 }
