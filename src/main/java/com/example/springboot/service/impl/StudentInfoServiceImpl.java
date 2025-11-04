@@ -58,4 +58,12 @@ public class StudentInfoServiceImpl implements StudentInfoService {
         int count = studentInfoMapper.countAll();
         return RESP.ok(count);
     }
+
+    @Override
+    public RESP searchStudents(String studentId, Integer gender, String college, String major, String className, Integer riskLevel, int pageNum, int pageSize) {
+        int offset = (pageNum - 1) * pageSize;
+        List<StudentInfo> list = studentInfoMapper.searchPage(studentId, gender, college, major, className, riskLevel, offset, pageSize);
+        int total = studentInfoMapper.countSearch(studentId, gender, college, major, className, riskLevel);
+        return RESP.ok(list, pageNum, total);
+    }
 }
