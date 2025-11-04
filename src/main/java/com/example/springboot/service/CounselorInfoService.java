@@ -18,4 +18,7 @@ public interface CounselorInfoService {
     RESP getCounselorsPage(int pageNum, int pageSize);
 
     RESP getCounselorCount();
+
+    RESP searchCounselors(String keyword, int pageNum, int pageSize);
+
 }
