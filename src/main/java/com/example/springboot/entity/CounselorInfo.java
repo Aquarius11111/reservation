@@ -48,4 +48,7 @@ public class CounselorInfo {
      * 头像存储路径
      */
     private String avatarUrl;
+
+    /** 新增字段：咨询师姓名（来自 sys_user 表） */
+    private String userName;
 }
