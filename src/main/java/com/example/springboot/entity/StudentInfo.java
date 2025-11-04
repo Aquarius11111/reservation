@@ -41,4 +41,6 @@ public class StudentInfo {
 
     /** 最近一次心理咨询时间 */
     private LocalDateTime lastCounselTime;
+    private String userName; // 学生姓名（来自sys_user）
+
 }
