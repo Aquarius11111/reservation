@@ -98,6 +98,7 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { systemAPI } from '../api/index.js'
 
 // 路由
 const router = useRouter()
@@ -163,11 +164,6 @@ const confirmChangePassword = async () => {
     return
   }
   
-  if (passwordForm.newPassword.length < 6) {
-    ElMessage.warning('新密码长度不能少于6位')
-    return
-  }
-  
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     ElMessage.error('两次输入的新密码不一致')
     return
@@ -176,14 +172,47 @@ const confirmChangePassword = async () => {
   try {
     changingPassword.value = true
     
-    // 这里调用修改密码的API
-    // const response = await userAPI.changePassword(passwordForm)
+    // 从localStorage获取userId
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (!userInfoStr) {
+      ElMessage.error('未找到用户信息，请重新登录')
+      return
+    }
+
+    let userInfo
+    try {
+      userInfo = JSON.parse(userInfoStr)
+    } catch (e) {
+      ElMessage.error('用户信息格式错误，请重新登录')
+      return
+    }
+
+    const userId = userInfo.userId
+    if (!userId) {
+      ElMessage.error('未找到用户ID，请重新登录')
+      return
+    }
+
+    // 调用修改密码API（使用query参数）
+    const requestParams = {
+      userId: userId,
+      oldPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
+    }
+
+    const response = await systemAPI.changePassword(requestParams)
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    ElMessage.success('密码修改成功')
-    closeChangePasswordDialog()
+    if (response.success) {
+      const apiData = response.data
+      if (apiData && apiData.code === 200) {
+        ElMessage.success(apiData.data || '密码修改成功')
+        closeChangePasswordDialog()
+      } else {
+        ElMessage.error(apiData.message || '密码修改失败')
+      }
+    } else {
+      ElMessage.error(response.error || '密码修改失败，请重试')
+    }
   } catch (error) {
     ElMessage.error('密码修改失败，请重试')
     console.error('修改密码失败:', error)

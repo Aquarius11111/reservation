@@ -151,8 +151,57 @@
 
       <!-- 操作按钮 -->
       <div class="action-buttons">
-        <button class="action-btn secondary">重置密码</button>
-        <button class="action-btn danger">注销账号</button>
+        <button @click="handleChangePassword" class="action-btn secondary">修改密码</button>
+      </div>
+    </div>
+
+    <!-- 修改密码对话框 -->
+    <div v-if="showChangePasswordDialog" class="dialog-overlay" @click="closeChangePasswordDialog">
+      <div class="dialog" @click.stop>
+        <div class="dialog-header">
+          <h3 class="dialog-title">修改密码</h3>
+          <button @click="closeChangePasswordDialog" class="close-button">×</button>
+        </div>
+        <div class="dialog-content">
+          <div class="form-group">
+            <label for="currentPassword">当前密码：</label>
+            <input 
+              type="password" 
+              id="currentPassword"
+              v-model="passwordForm.currentPassword"
+              class="form-input"
+              placeholder="请输入当前密码"
+            />
+          </div>
+          <div class="form-group">
+            <label for="newPassword">新密码：</label>
+            <input 
+              type="password" 
+              id="newPassword"
+              v-model="passwordForm.newPassword"
+              class="form-input"
+              placeholder="请输入新密码"
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">确认密码：</label>
+            <input 
+              type="password" 
+              id="confirmPassword"
+              v-model="passwordForm.confirmPassword"
+              class="form-input"
+              placeholder="请再次输入新密码"
+            />
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button @click="closeChangePasswordDialog" class="cancel-btn">
+            取消
+          </button>
+          <button @click="confirmChangePassword" class="confirm-btn" :disabled="changingPassword">
+            {{ changingPassword ? '修改中...' : '确认修改' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -161,7 +210,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { counselorInfoAPI } from '../../api/index.js'
+import { counselorInfoAPI, systemAPI } from '../../api/index.js'
 
 // 响应式数据
 const loading = ref(false)
@@ -213,6 +262,15 @@ const editingValues = reactive({
 // 保存状态
 const saving = ref(false)
 
+// 修改密码对话框相关
+const showChangePasswordDialog = ref(false)
+const changingPassword = ref(false)
+const passwordForm = reactive({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
 // 默认头像
 const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjYwIiBmaWxsPSIjNjY3ZWVhIi8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDgiIHI9IjE4IiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMzYgODRDMzYgNzIgODQgNzIgODQgODRWNzJIMzZWNzJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4='
 
@@ -222,8 +280,32 @@ const loadCounselorInfo = async () => {
     loading.value = true
     error.value = null
 
-    // 使用咨询师ID 11001 调用API
-    const response = await counselorInfoAPI.getCounselorInfo('11001')
+    // 从 localStorage 获取用户信息
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (!userInfoStr) {
+      error.value = '未找到用户信息，请重新登录'
+      loading.value = false
+      return
+    }
+
+    let userInfo
+    try {
+      userInfo = JSON.parse(userInfoStr)
+    } catch (e) {
+      error.value = '用户信息格式错误，请重新登录'
+      loading.value = false
+      return
+    }
+
+    const counselorId = userInfo.userId
+    if (!counselorId) {
+      error.value = '未找到咨询师ID，请重新登录'
+      loading.value = false
+      return
+    }
+
+    // 使用从 localStorage 获取的咨询师ID 调用API
+    const response = await counselorInfoAPI.getCounselorInfo(counselorId)
 
     if (response.success) {
       const apiData = response.data
@@ -310,6 +392,91 @@ const saveField = async (field) => {
     console.error('保存失败:', err)
   } finally {
     saving.value = false
+  }
+}
+
+// 处理修改密码
+const handleChangePassword = () => {
+  showChangePasswordDialog.value = true
+  // 重置表单
+  passwordForm.currentPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
+}
+
+// 关闭修改密码对话框
+const closeChangePasswordDialog = () => {
+  showChangePasswordDialog.value = false
+  changingPassword.value = false
+}
+
+// 确认修改密码
+const confirmChangePassword = async () => {
+  // 验证表单
+  if (!passwordForm.currentPassword) {
+    ElMessage.warning('请输入当前密码')
+    return
+  }
+  
+  if (!passwordForm.newPassword) {
+    ElMessage.warning('请输入新密码')
+    return
+  }
+  
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    ElMessage.error('两次输入的新密码不一致')
+    return
+  }
+
+  try {
+    changingPassword.value = true
+    
+    // 从localStorage获取userId
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (!userInfoStr) {
+      ElMessage.error('未找到用户信息，请重新登录')
+      return
+    }
+
+    let userInfo
+    try {
+      userInfo = JSON.parse(userInfoStr)
+    } catch (e) {
+      ElMessage.error('用户信息格式错误，请重新登录')
+      return
+    }
+
+    const userId = userInfo.userId
+    if (!userId) {
+      ElMessage.error('未找到用户ID，请重新登录')
+      return
+    }
+
+    // 调用修改密码API
+    const requestData = {
+      userId: userId,
+      oldPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
+    }
+
+    const response = await systemAPI.changePassword(requestData)
+    
+    if (response.success) {
+      const apiData = response.data
+      if (apiData && apiData.code === 200) {
+        ElMessage.success(apiData.data || '密码修改成功')
+        closeChangePasswordDialog()
+      } else {
+        ElMessage.error(apiData.message || '密码修改失败')
+      }
+    } else {
+      ElMessage.error(response.error || '密码修改失败，请重试')
+    }
+  } catch (error) {
+    ElMessage.error('密码修改失败，请重试')
+    console.error('修改密码失败:', error)
+  } finally {
+    changingPassword.value = false
   }
 }
 
@@ -699,16 +866,6 @@ onMounted(() => {
   transform: translateY(-1px);
 }
 
-.action-btn.danger {
-  background: #dc3545;
-  color: white;
-}
-
-.action-btn.danger:hover {
-  background: #c82333;
-  transform: translateY(-1px);
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .avatar-section {
@@ -729,6 +886,170 @@ onMounted(() => {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
+  }
+}
+
+/* 对话框样式 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.dialog {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  overflow: hidden;
+  animation: dialogAppear 0.3s ease-out;
+}
+
+@keyframes dialogAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.dialog-content {
+  padding: 25px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 25px;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.dialog-actions .cancel-btn {
+  padding: 10px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.dialog-actions .cancel-btn:hover {
+  background: #5a6268;
+}
+
+.dialog-actions .confirm-btn {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+  min-width: 100px;
+}
+
+.dialog-actions .confirm-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.dialog-actions .confirm-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .dialog {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .dialog-header,
+  .dialog-content,
+  .dialog-actions {
+    padding: 15px 20px;
   }
 }
 </style>

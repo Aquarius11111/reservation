@@ -7,7 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   // baseURL: 'http://192.168.43.187:9090',
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287666',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -404,7 +404,19 @@ export const systemAPI = {
     return request('/api/health', {
       method: 'GET'
     })
+  },
+
+  /**
+   * 修改密码
+   * @param {Object} params 参数：{userId, oldPassword, newPassword}
+   */
+  changePassword(params) {
+    return request('/sysUser/changePassword', {
+      method: 'PUT',
+      params: params
+    })
   }
+
 }
 
 /**
@@ -415,7 +427,7 @@ export const counselorInfoAPI = {
    * 获取咨询师信息
    * @param {string} counselorId 咨询师ID
    */
-  getCounselorInfo(counselorId = '11001') {
+  getCounselorInfo(counselorId) {
     return request(`/counselor/info/get/${counselorId}`, {
       method: 'GET'
     })
