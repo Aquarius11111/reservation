@@ -54,4 +54,13 @@ public class CounselorInfoController {
     public RESP getCounselorCount() {
         return counselorInfoService.getCounselorCount();
     }
+
+    /** 模糊搜索+分页查询 */
+    @GetMapping("/search")
+    public RESP searchCounselors(@RequestParam String keyword,
+                                 @RequestParam int pageNum,
+                                 @RequestParam int pageSize) {
+        return counselorInfoService.searchCounselors(keyword, pageNum, pageSize);
+    }
+
 }
