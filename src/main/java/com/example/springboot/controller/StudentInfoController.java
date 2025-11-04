@@ -54,4 +54,17 @@ public class StudentInfoController {
     public RESP getStudentCount() {
         return studentInfoService.getStudentCount();
     }
+    /** 多条件模糊查询 + 分页（支持学号、性别、学院、专业、班级、风险等级） */
+    @GetMapping("/search")
+    public RESP searchStudents(
+            @RequestParam(required = false) String studentId,
+            @RequestParam(required = false) Integer gender,
+            @RequestParam(required = false) String college,
+            @RequestParam(required = false) String major,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) Integer riskLevel,
+            @RequestParam int pageNum,
+            @RequestParam int pageSize) {
+        return studentInfoService.searchStudents(studentId, gender, college, major, className, riskLevel, pageNum, pageSize);
+    }
 }
