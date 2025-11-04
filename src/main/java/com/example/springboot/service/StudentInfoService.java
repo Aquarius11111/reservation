@@ -18,4 +18,6 @@ public interface StudentInfoService {
     RESP getStudentsPage(int pageNum, int pageSize);
 
     RESP getStudentCount();
+
+    RESP searchStudents(String studentId, Integer gender, String college, String major, String className, Integer riskLevel, int pageNum, int pageSize);
 }
