@@ -44,7 +44,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ statsData.monthlySessions }}</div>
-          <div class="stat-label">本月咨询</div>
+          <div class="stat-label">完成咨询</div>
         </div>
       </div>
     </div>
@@ -94,37 +94,14 @@
           </div>
         </div>
       </div>
-
-      <!-- 待办事项 -->
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title">待办事项</h3>
-        </div>
-        <div class="card-content">
-          <div class="todo-list">
-            <div class="todo-item">
-              <div class="todo-icon">📋</div>
-              <div class="todo-content">
-                <div class="todo-text">审核新咨询师申请</div>
-                <div class="todo-count">待处理</div>
-              </div>
-            </div>
-            <div class="todo-item">
-              <div class="todo-icon">⚠️</div>
-              <div class="todo-content">
-                <div class="todo-text">系统维护检查</div>
-                <div class="todo-count">正常</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { studentAPI, counselorInfoAPI, reportAPI } from '../../api/index.js'
+import { ElMessage } from 'element-plus'
 
 // 用户信息
 const userInfo = reactive({
@@ -151,12 +128,46 @@ const currentDate = computed(() => {
 
 // 加载统计数据
 const loadStats = async () => {
-  // TODO: 调用后端API获取统计数据
-  // 暂时使用模拟数据
-  statsData.totalStudents = 256
-  statsData.totalCounselors = 12
-  statsData.todayAppointments = 28
-  statsData.monthlySessions = 342
+  try {
+    // 获取学生总数
+    const studentCountResponse = await studentAPI.getStudentCount()
+    if (studentCountResponse.success && studentCountResponse.data.code === 200) {
+      statsData.totalStudents = studentCountResponse.data.data || 0
+    } else {
+      console.error('获取学生总数失败:', studentCountResponse.data?.message)
+      ElMessage.warning('获取学生总数失败，使用默认值')
+    }
+  } catch (error) {
+    console.error('加载学生总数失败:', error)
+  }
+
+  try {
+    // 获取咨询师总数
+    const counselorCountResponse = await counselorInfoAPI.getCounselorCount()
+    if (counselorCountResponse.success && counselorCountResponse.data.code === 200) {
+      statsData.totalCounselors = counselorCountResponse.data.data || 0
+    } else {
+      console.error('获取咨询师总数失败:', counselorCountResponse.data?.message)
+      ElMessage.warning('获取咨询师总数失败，使用默认值')
+    }
+  } catch (error) {
+    console.error('加载咨询师总数失败:', error)
+  }
+
+  try {
+    // 获取预约概览数据（当日预约和已完成咨询）
+    const overviewResponse = await reportAPI.getReservationOverview()
+    if (overviewResponse.success && overviewResponse.data.code === 200) {
+      const overviewData = overviewResponse.data.data || {}
+      statsData.todayAppointments = overviewData.todayCount || 0
+      statsData.monthlySessions = overviewData.completedCount || 0
+    } else {
+      console.error('获取预约概览数据失败:', overviewResponse.data?.message)
+      ElMessage.warning('获取预约概览数据失败，使用默认值')
+    }
+  } catch (error) {
+    console.error('加载预约概览数据失败:', error)
+  }
 }
 
 // 页面加载时获取用户信息（统一从对象中读取）
@@ -361,47 +372,6 @@ onMounted(() => {
 
 .status-good {
   color: #28a745;
-}
-
-/* 待办事项 */
-.todo-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 8px;
-  background: #f8f9fa;
-  transition: all 0.2s ease;
-}
-
-.todo-item:hover {
-  background: #e9ecef;
-}
-
-.todo-icon {
-  font-size: 1.5rem;
-}
-
-.todo-content {
-  flex: 1;
-}
-
-.todo-text {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #2c3e50;
-  margin-bottom: 4px;
-}
-
-.todo-count {
-  font-size: 0.85rem;
-  color: #6c757d;
 }
 
 /* 响应式设计 */

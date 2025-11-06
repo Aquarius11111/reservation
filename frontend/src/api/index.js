@@ -7,7 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   // baseURL: 'http://192.168.43.187:9090',
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287371',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6295563',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -186,6 +186,15 @@ export const studentAPI = {
     return request('/api/student/list', {
       method: 'GET',
       params
+    })
+  },
+
+  /**
+   * 获取学生总数
+   */
+  getStudentCount() {
+    return request('/student/info/count', {
+      method: 'GET'
     })
   }
 }
@@ -404,7 +413,19 @@ export const systemAPI = {
     return request('/api/health', {
       method: 'GET'
     })
+  },
+
+  /**
+   * 修改密码
+   * @param {Object} params 参数：{userId, oldPassword, newPassword}
+   */
+  changePassword(params) {
+    return request('/sysUser/changePassword', {
+      method: 'PUT',
+      params: params
+    })
   }
+
 }
 
 /**
@@ -415,9 +436,20 @@ export const counselorInfoAPI = {
    * 获取咨询师信息
    * @param {string} counselorId 咨询师ID
    */
-  getCounselorInfo(counselorId = '11001') {
+  getCounselorInfo(counselorId) {
     return request(`/counselor/info/get/${counselorId}`, {
       method: 'GET'
+    })
+  },
+
+  /**
+   * 分页查询咨询师列表
+   * @param {Object} params 查询参数：{ pageNum, pageSize, counselorId(可选) }
+   */
+  getCounselorList(params) {
+    return request('/counselor/info/page', {
+      method: 'GET',
+      params: params
     })
   },
 
@@ -429,6 +461,36 @@ export const counselorInfoAPI = {
     return request('/counselor/info/update', {
       method: 'PUT',
       data: counselorInfo
+    })
+  },
+
+  /**
+   * 删除咨询师
+   * @param {string} counselorId 咨询师ID
+   */
+  deleteCounselor(counselorId) {
+    return request(`/counselor/info/delete/${counselorId}`, {
+      method: 'DELETE'
+    })
+  },
+
+  /**
+   * 添加咨询师
+   * @param {Object} counselorInfo 咨询师信息
+   */
+  addCounselor(counselorInfo) {
+    return request('/counselor/info/add', {
+      method: 'POST',
+      data: counselorInfo
+    })
+  },
+
+  /**
+   * 获取咨询师总数
+   */
+  getCounselorCount() {
+    return request('/counselor/info/count', {
+      method: 'GET'
     })
   }
 }
@@ -467,6 +529,15 @@ export const reportAPI = {
     return request('/api/report/export', {
       method: 'GET',
       params
+    })
+  },
+
+  /**
+   * 获取预约概览数据（当日预约和已完成咨询）
+   */
+  getReservationOverview() {
+    return request('/overview/reservation', {
+      method: 'GET'
     })
   }
 }
