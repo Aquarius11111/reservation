@@ -7,7 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   // baseURL: 'http://192.168.43.187:9090',
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6295563',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287769',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -168,11 +168,10 @@ export const studentAPI = {
 
   /**
    * 更新学生信息
-   * @param {string} studentId 学生ID
-   * @param {Object} studentInfo 学生信息
+   * @param {Object} studentInfo 学生信息：{ studentId, gender, college, grade, major, className, phoneNumber, riskLevel, lastEvaluateTime, lastCounselTime }
    */
-  updateStudentInfo(studentId, studentInfo) {
-    return request(`/api/student/info/${studentId}`, {
+  updateStudentInfo(studentInfo) {
+    return request('/student/info/update', {
       method: 'PUT',
       data: studentInfo
     })
@@ -195,6 +194,27 @@ export const studentAPI = {
   getStudentCount() {
     return request('/student/info/count', {
       method: 'GET'
+    })
+  },
+
+  /**
+   * 查询学生信息
+   * @param {Object} params 查询参数：{ userName, grade, college, major, riskLevel, pageNum, pageSize }
+   */
+  searchStudents(params = {}) {
+    return request('/student/info/search', {
+      method: 'GET',
+      params
+    })
+  },
+
+  /**
+   * 删除学生信息
+   * @param {string} studentId 学生ID
+   */
+  deleteStudent(studentId) {
+    return request(`/student/info/delete/${studentId}`, {
+      method: 'DELETE'
     })
   }
 }
