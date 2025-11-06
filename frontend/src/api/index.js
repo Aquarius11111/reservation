@@ -7,7 +7,7 @@ import axios from 'axios'
 // 创建axios实例
 const apiClient = axios.create({
   // baseURL: 'http://192.168.43.187:9090',
-  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6287865',
+  baseURL: 'https://m1.apifoxmock.com/m1/7202211-6928258-6295563',
   timeout: 10000, // 10秒超时
   headers: {
     'Content-Type': 'application/json'
@@ -186,6 +186,15 @@ export const studentAPI = {
     return request('/api/student/list', {
       method: 'GET',
       params
+    })
+  },
+
+  /**
+   * 获取学生总数
+   */
+  getStudentCount() {
+    return request('/student/info/count', {
+      method: 'GET'
     })
   }
 }
@@ -474,6 +483,15 @@ export const counselorInfoAPI = {
       method: 'POST',
       data: counselorInfo
     })
+  },
+
+  /**
+   * 获取咨询师总数
+   */
+  getCounselorCount() {
+    return request('/counselor/info/count', {
+      method: 'GET'
+    })
   }
 }
 
@@ -511,6 +529,15 @@ export const reportAPI = {
     return request('/api/report/export', {
       method: 'GET',
       params
+    })
+  },
+
+  /**
+   * 获取预约概览数据（当日预约和已完成咨询）
+   */
+  getReservationOverview() {
+    return request('/overview/reservation', {
+      method: 'GET'
     })
   }
 }
