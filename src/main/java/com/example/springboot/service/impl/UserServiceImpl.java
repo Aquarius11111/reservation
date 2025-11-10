@@ -3,6 +3,7 @@ package com.example.springboot.service.impl;
 import com.example.springboot.dto.LoginResponseDTO;
 import com.example.springboot.mapper.UserMapper;
 import com.example.springboot.service.UserService;
+import com.example.springboot.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,7 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
 
     @Override
-    public LoginResponseDTO getLoginUserByUserId(String userId) {
+    public LoginVO getLoginUserByUserId(String userId) {
         return userMapper.selectLoginUserByUserId(userId);
     }
 
@@ -24,4 +25,15 @@ public class UserServiceImpl implements UserService {
     public String getPasswordByUserId(String userId) {
         return userMapper.selectPasswordByUserId(userId);
     }
+
+    @Override
+    public String getLastCounselTime(String userId) {
+        return userMapper.getLastCounselTime(userId);
+    }
+
+    @Override
+    public String getLastEvaluateTime(String userId) {
+        return userMapper.getLastEvaluateTime(userId);
+    }
+
 }

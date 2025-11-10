@@ -225,7 +225,7 @@
         SELECT *
         FROM reserve_time_slot
         WHERE counselor_id LIKE CONCAT('%', #{counselorId}, '%')
-        ORDER BY reserve_date ASC, start_time ASC
+        ORDER BY reserve_date DESC, start_time ASC
         LIMIT #{offset}, #{pageSize}
     </select>
 

@@ -4,6 +4,7 @@ import com.example.springboot.common.Result;
 import com.example.springboot.dto.LoginRequestDTO;
 import com.example.springboot.dto.LoginResponseDTO;
 import com.example.springboot.service.UserService;
+import com.example.springboot.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,7 @@ public class LoginController {
         String inputPassword = loginRequest.getPassword();
 
         // 2. 根据用户ID查询用户信息（不含密码）
-        LoginResponseDTO loginUser = userService.getLoginUserByUserId(userId);
+        LoginVO loginUser = userService.getLoginUserByUserId(userId);
         if (loginUser == null) {
             // 用户不存在（使用自定义错误码404）
             return Result.error(404, "用户不存在");
@@ -57,7 +58,17 @@ public class LoginController {
         }
 
         // 5. 登录成功，返回用户信息
-        return Result.success(loginUser);
+        LoginResponseDTO user = new LoginResponseDTO();
+        user.setUserId(loginUser.getUserId());
+        user.setUserName(loginUser.getUserName());
+        user.setUserRole(loginUser.getUserRole());
+        if(loginUser.getUserRole()==1){
+            String lastCounselTime = userService.getLastCounselTime(userId);
+            String lastEvaluateTime = userService.getLastEvaluateTime(userId);
+            user.setLastCounselTime(lastCounselTime!=null?lastCounselTime.substring(0,10):lastCounselTime);
+            user.setLastEvaluateTime(lastEvaluateTime!=null?lastEvaluateTime.substring(0,10):lastEvaluateTime);
+        }
+        return Result.success(user);
     }
 
     /**

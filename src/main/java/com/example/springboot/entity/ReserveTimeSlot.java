@@ -21,7 +21,7 @@ public class ReserveTimeSlot {
     /**
      * 日期（如 2025-10-01）
      */
-
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Shanghai")
     private Date reserveDate;
 
     /**
