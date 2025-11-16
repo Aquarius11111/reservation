@@ -159,7 +159,7 @@ const handleLogin = async () => {
         } else if (result.data && result.data.userRole === 3) {
           router.push('/admin/dashboard')
         } else {
-          router.push('/')
+          router.push('/home')
         }
       } else {
         ElMessage.error(result.msg || '登录失败，请重试')

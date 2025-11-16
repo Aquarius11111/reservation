@@ -167,7 +167,7 @@
       </div>
       <!-- 返回首页按钮（与 ReservationList 保持一致） -->
       <div class="back-container">
-        <router-link to="/" class="back-button">← 返回首页</router-link>
+        <router-link to="/home" class="back-button">← 返回首页</router-link>
       </div>
     </div>
   </div>

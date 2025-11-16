@@ -103,7 +103,7 @@
 
     <!-- 返回首页按钮 -->
     <div class="back-container">
-      <router-link to="/" class="back-button">
+      <router-link to="/home" class="back-button">
         ← 返回首页
       </router-link>
     </div>

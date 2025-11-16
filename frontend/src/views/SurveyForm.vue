@@ -297,7 +297,7 @@ const startSuccessCountdown = () => {
       clearInterval(countdownTimer)
       countdownTimer = null
       showSuccessDialog.value = false
-      router.push('/')
+      router.push('/home')
     }
   }, 1000)
 }
@@ -308,7 +308,7 @@ const goHomeNow = () => {
     countdownTimer = null
   }
   showSuccessDialog.value = false
-  router.push('/')
+  router.push('/home')
 }
 
 // SCL-90量表统一选项
