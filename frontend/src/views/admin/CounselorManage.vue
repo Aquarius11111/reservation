@@ -857,41 +857,40 @@ onMounted(() => {
   gap: 8px;
 }
 
-.btn-detail, .btn-edit, .btn-delete {
+.action-buttons button {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .btn-detail {
-  background: #667eea;
-  color: white;
+  background: #e3f2fd;
+  color: #1976d2;
 }
 
 .btn-detail:hover {
-  background: #5a6fd8;
+  background: #bbdefb;
 }
 
 .btn-edit {
-  background: #8e44ad;
-  color: white;
+  background: #fff3e0;
+  color: #f57c00;
 }
 
 .btn-edit:hover {
-  background: #9b59b6;
+  background: #ffe0b2;
 }
 
 .btn-delete {
-  background: #e74c3c;
-  color: white;
+  background: #ffebee;
+  color: #c62828;
 }
 
 .btn-delete:hover {
-  background: #c0392b;
+  background: #ffcdd2;
 }
 
 /* 空状态 */
