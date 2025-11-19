@@ -203,8 +203,8 @@ const pageSize = ref(10)
 const loading = ref(false)
 const error = ref(null)
 
-// 咨询师ID（实际应用中应该从用户登录状态获取）
-const counselorId = ref('11001')
+// 咨询师ID（从用户登录状态获取）
+const counselorId = ref('')
 
 // 对话框相关
 const showConfirmDialog = ref(false)
@@ -430,6 +430,10 @@ const cancelAppointment = async (id) => {
 
 // 加载预约数据
 const loadAppointments = async () => {
+  if (!counselorId.value) {
+    console.warn('咨询师ID未设置，无法加载预约数据')
+    return
+  }
   try {
     loading.value = true
     error.value = null
@@ -495,10 +499,28 @@ const handleFilterChange = () => {
 }
 
 onMounted(() => {
-  // 默认将日期筛选设为今天
-  dateFilter.value = getTodayDateString()
-  // 初始加载数据
-  loadAppointments()
+  // 从localStorage获取用户信息（统一从对象中读取）
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (userInfoStr) {
+    try {
+      const userInfoData = JSON.parse(userInfoStr)
+      // 设置咨询师ID
+      if (userInfoData.userId) {
+        counselorId.value = userInfoData.userId
+        // 只有在获取到咨询师ID后才加载数据
+        // 默认将日期筛选设为今天
+        dateFilter.value = getTodayDateString()
+        // 初始加载数据
+        loadAppointments()
+      } else {
+        console.warn('未找到咨询师ID，无法加载数据')
+      }
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+    }
+  } else {
+    console.warn('未找到用户信息，请重新登录')
+  }
 })
 </script>
 

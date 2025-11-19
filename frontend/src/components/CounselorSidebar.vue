@@ -40,7 +40,7 @@
     <div class="sidebar-footer">
       <div class="user-info" v-if="!isCollapsed">
         <div class="user-avatar">
-          <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.name" />
+          <span class="avatar-initial">{{ avatarInitial }}</span>
         </div>
         <div class="user-details">
           <div class="user-name">{{ userInfo.name || '咨询师' }}</div>
@@ -48,14 +48,14 @@
         </div>
       </div>
       <div class="user-avatar-collapsed" v-else>
-        <img :src="userInfo.avatar || defaultAvatar" :alt="userInfo.name" />
+        <span class="avatar-initial">{{ avatarInitial }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 
 // 侧边栏折叠状态
 const isCollapsed = ref(false)
@@ -63,12 +63,13 @@ const isCollapsed = ref(false)
 // 用户信息
 const userInfo = reactive({
   name: '',
-  role: '心理咨询师',
-  avatar: null
+  role: '心理咨询师'
 })
 
-// 默认头像
-const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM0Y2FmNTAiLz4KPGNpcmNsZSBjeD0iMjAiIGN5PSIxNiIgcj0iNiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyIDI4QzEyIDI0IDI4IDI0IDI4IDI4VjMySDEyVjI4WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+'
+const avatarInitial = computed(() => {
+  const name = (userInfo.name || '').trim()
+  return name ? name.charAt(0) : '咨'
+})
 
 // 菜单项
 const menuItems = [
@@ -97,11 +98,6 @@ const menuItems = [
 // 切换折叠状态
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
-}
-
-// 处理头像加载错误
-const handleAvatarError = (event) => {
-  event.target.src = defaultAvatar
 }
 
 // 页面加载时从localStorage获取用户信息（统一从对象中读取）
@@ -291,14 +287,14 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.user-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
 }
 
 .user-details {
@@ -322,12 +318,17 @@ onMounted(() => {
   justify-content: center;
 }
 
-.user-avatar-collapsed img {
+.user-avatar-collapsed .avatar-initial {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #fff;
 }
 
 /* 响应式设计 */

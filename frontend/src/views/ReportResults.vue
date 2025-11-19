@@ -49,6 +49,13 @@
         前往填写问卷
       </router-link>
     </div>
+
+    <!-- 返回首页 -->
+    <div class="back-container">
+      <router-link to="/home" class="back-button">
+        ← 返回首页
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -290,6 +297,26 @@ onMounted(() => {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.back-container {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.back-button:hover {
+  background: #5a6268;
 }
 
 /* 响应式设计 */

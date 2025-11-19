@@ -192,7 +192,7 @@
         </div>
 
         <!-- 问卷题目区域（组件化 + v-for） -->
-        <div class="questions-section" v-if="!isLoading && (!isFirstFill || currentStep === 2)">
+        <div class="questions-section" ref="questionsSectionRef" v-if="!isLoading && (!isFirstFill || currentStep === 2)">
           <QuestionItem
             v-for="(q, index) in questions"
             :key="q.id"
@@ -245,6 +245,13 @@
       </div>
       <span class="progress-text">{{ completedQuestions }}/{{ totalQuestions }} 题已完成</span>
     </div>
+
+    <!-- 返回首页 -->
+    <div class="back-container">
+      <router-link to="/home" class="back-button">
+        ← 返回首页
+      </router-link>
+    </div>
   </div>
   
   <!-- 提交成功对话框（模仿预约成功样式） -->
@@ -259,7 +266,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import QuestionItem from '../components/QuestionItem.vue'
 import { surveyAPI, apiUtils } from '../api/index.js'
@@ -523,6 +530,7 @@ const isNumericFieldValid = (field, min = 0, max = 999) => {
 
 // 分步逻辑
 const currentStep = ref(1) // 1: 基础信息, 2: 问卷题目
+const questionsSectionRef = ref(null) // 问卷题目区域的引用
 const isbasicSurveyValid = computed(() => {
   return requiredBasicFields.every((k) => {
     if (k === 'age') return isNumericFieldValid(k, 1, 120)
@@ -532,8 +540,18 @@ const isbasicSurveyValid = computed(() => {
   })
 })
 
-const goNext = () => {
-  if (isbasicSurveyValid.value) currentStep.value = 2
+const goNext = async () => {
+  if (isbasicSurveyValid.value) {
+    currentStep.value = 2
+    // 等待 DOM 更新后滚动到问题区域开头
+    await nextTick()
+    if (questionsSectionRef.value) {
+      questionsSectionRef.value.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      })
+    }
+  }
 }
 
 const goBack = () => {
@@ -999,6 +1017,26 @@ const formatDate = (iso) => {
   color: #6c757d;
   text-align: center;
   display: block;
+}
+
+.back-container {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.back-button:hover {
+  background: #5a6268;
 }
 
 /* 响应式设计 */

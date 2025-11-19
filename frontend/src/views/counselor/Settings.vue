@@ -29,14 +29,9 @@
     <div v-else class="settings-content">
       <!-- 头像区域 -->
       <div class="avatar-section">
-      <div class="avatar-container">
-        <img 
-          :src="avatarUrlComputed" 
-          :alt="counselorInfo.counselorId"
-          class="avatar-image"
-        />
-          <div class="avatar-overlay">
-            <button class="avatar-edit-btn">📷</button>
+        <div class="avatar-container">
+          <div class="avatar-circle">
+            <span class="avatar-initial">{{ avatarInitial }}</span>
           </div>
         </div>
         <div class="avatar-info">
@@ -229,20 +224,9 @@ const counselorInfo = reactive({
   avatarUrl: ''
 })
 
-// 计算属性：将后端相对路径作为前端相对路径使用
-const avatarUrlComputed = computed(() => {
-  if (!counselorInfo.avatarUrl) {
-    return defaultAvatar
-  }
-  
-  // 如果已经是完整URL（以http://或https://开头），直接返回
-  if (counselorInfo.avatarUrl.startsWith('http://') || counselorInfo.avatarUrl.startsWith('https://')) {
-    return counselorInfo.avatarUrl
-  }
-  
-  // 直接使用后端返回的相对路径，如 /static/avatar/counselor_11001.jpg
-  // Vite会将这个路径代理到后端服务器
-  return counselorInfo.avatarUrl
+const avatarInitial = computed(() => {
+  const name = (counselorInfo.userName || '').trim()
+  return name ? name.charAt(0) : '咨'
 })
 
 // 编辑状态
@@ -272,7 +256,6 @@ const passwordForm = reactive({
 })
 
 // 默认头像
-const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjYwIiBmaWxsPSIjNjY3ZWVhIi8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDgiIHI9IjE4IiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMzYgODRDMzYgNzIgODQgNzIgODQgODRWNzJIMzZWNzJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4='
 
 // 加载咨询师信息
 const loadCounselorInfo = async () => {
@@ -590,45 +573,25 @@ onMounted(() => {
 }
 
 .avatar-container {
-  position: relative;
   width: 120px;
   height: 120px;
 }
 
-.avatar-image {
+.avatar-circle {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: cover;
   border: 4px solid #e9ecef;
-}
-
-.avatar-overlay {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 36px;
-  height: 36px;
-  background: #667eea;
-  border-radius: 50%;
+  background: #f4f6f8;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.avatar-overlay:hover {
-  background: #5a6fd8;
-  transform: scale(1.1);
-}
-
-.avatar-edit-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
+.avatar-initial {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #4a5568;
 }
 
 .avatar-info {
