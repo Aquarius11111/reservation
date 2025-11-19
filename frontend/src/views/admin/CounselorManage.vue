@@ -86,12 +86,11 @@
         <div class="detail-dialog-content" v-if="selectedCounselor">
           <div class="detail-section">
             <div class="detail-avatar-section">
-              <img 
-                :src="selectedCounselor.avatarUrl || '/avatar-default.png'" 
-                :alt="selectedCounselor.userName"
-                class="detail-avatar"
-                @error="handleAvatarError"
-              />
+              <div class="detail-avatar">
+                <span class="avatar-initial">
+                  {{ getCounselorInitial(isEditMode ? editForm.userName : selectedCounselor.userName) }}
+                </span>
+              </div>
               <div class="detail-name-section">
                 <h4 v-if="!isEditMode" class="detail-name">{{ selectedCounselor.userName }}</h4>
                 <input 
@@ -173,7 +172,6 @@
                     <option value="8:00-12:00">8:00-12:00</option>
                     <option value="9:00-12:00">9:00-12:00</option>
                     <option value="14:00-17:00">14:00-17:00</option>
-                    <option value="14:00-18:00">14:00-18:00</option>
                   </select>
                   <button 
                     v-if="editForm.timeSlots.length > 1"
@@ -305,7 +303,6 @@
                     <option value="8:00-12:00">8:00-12:00</option>
                     <option value="9:00-12:00">9:00-12:00</option>
                     <option value="14:00-17:00">14:00-17:00</option>
-                    <option value="14:00-18:00">14:00-18:00</option>
                   </select>
                   <button 
                     v-if="addForm.timeSlots.length > 1"
@@ -381,6 +378,11 @@ const addForm = ref({
   avatarUrl: '/static/avatar/default.jpg' // 默认头像
 })
 
+const getCounselorInitial = (name) => {
+  const text = (name || '').trim()
+  return text ? text.charAt(0) : '咨'
+}
+
 // 咨询师列表数据
 const counselorList = ref([])
 const total = ref(0)
@@ -453,11 +455,6 @@ const closeDetailDialog = () => {
   selectedCounselor.value = null
   isEditMode.value = false
   saving.value = false
-}
-
-// 处理头像加载错误
-const handleAvatarError = (event) => {
-  event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjYwIiBmaWxsPSIjNjY3ZWVhIi8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDgiIHI9IjE4IiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMzYgODRDMzYgNzIgODQgNzIgODQgODRWNzJIMzZWNzJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4='
 }
 
 // 编辑
@@ -1048,9 +1045,18 @@ onMounted(() => {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  object-fit: cover;
   border: 4px solid #e9ecef;
   flex-shrink: 0;
+  background: #f4f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-avatar .avatar-initial {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #4a5568;
 }
 
 .detail-name-section {

@@ -7,7 +7,7 @@
       <div class="time-selection-section">
         <h3 class="section-title">选择预约时间段（最多可选择5个，每次咨询1小时）</h3>
         <p class="time-tips">📅 开放时间：周一至周五工作日</p>
-        <p class="time-tips">⏰ 预约时间：9:00-16:00 每整点时段</p>
+        <p class="time-tips">⏰ 预约时间：9:00-17:00 每整点时段</p>
         <div class="time-input-group">
           <div class="date-time-input" v-for="(timeSlot, index) in selectedTimeSlots" :key="index">
             <div class="time-slot">
@@ -126,11 +126,7 @@
           >
             <div class="counselor-info">
               <div class="avatar">
-                <img 
-                  :src="counselor.avatarUrl || '/avatar-default.png'" 
-                  :alt="counselor.counselorName"
-                  @error="handleImageError"
-                />
+                <span class="avatar-initial">{{ getCounselorInitial(counselor.counselorName) }}</span>
               </div>
               <div class="details">
                 <h4 class="counselor-name">{{ counselor.counselorName }}</h4>
@@ -165,10 +161,10 @@
           </div>
         </div>
       </div>
-      <!-- 返回首页按钮（与 ReservationList 保持一致） -->
-      <div class="back-container">
-        <router-link to="/home" class="back-button">← 返回首页</router-link>
-      </div>
+    </div>
+    <!-- 返回首页按钮 -->
+    <div class="back-container">
+      <router-link to="/home" class="back-button">← 返回首页</router-link>
     </div>
   </div>
 </template>
@@ -230,8 +226,9 @@ export default {
     },
     
     // 禁用不在工作时间的小时 (工作时间: 8:00-12:00,14:00-17:00)
+    // 允许的开始时间：8, 9, 10, 11, 14, 15, 16（17点是结束时间，不能作为开始时间）
     disabledHours() {
-      return [0, 1, 2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+      return [0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 17, 18, 19, 20, 21, 22, 23]
     },
     
     // 禁用非准点分钟 (只能选择整点)
@@ -354,10 +351,10 @@ export default {
         }
       })
     },
-    
-    handleImageError(event) {
-      // 处理头像图片加载失败
-      event.target.src = '/avatar-default.png'
+
+    getCounselorInitial(name) {
+      const text = (name || '').trim()
+      return text ? text.charAt(0) : '咨'
     }
   }
 }
@@ -546,14 +543,20 @@ export default {
 
 .avatar {
   flex-shrink: 0;
-}
-
-.avatar img {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  object-fit: cover;
   border: 3px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f6f8;
+}
+
+.avatar-initial {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #4a5568;
 }
 
 .details {

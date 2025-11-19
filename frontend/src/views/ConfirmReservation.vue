@@ -28,10 +28,7 @@
           <div class="counselor-card">
             <div class="counselor-info">
               <div class="avatar">
-                <img 
-                  :src="counselorInfo.avatarUrl || '/avatar-default.png'" 
-                  :alt="counselorInfo.counselorName"
-                />
+                <span class="avatar-initial">{{ getCounselorInitial(counselorInfo.counselorName) }}</span>
               </div>
               <div class="details">
                 <h4>{{ counselorInfo.counselorName }}</h4>
@@ -183,6 +180,11 @@ export default {
       return timeString
     },
     
+    getCounselorInitial(name) {
+      const text = (name || '').trim()
+      return text ? text.charAt(0) : '咨'
+    },
+
     // 选择具体时段
     selectTimeSlot(timeSlot) {
       this.selectedTimeSlot = timeSlot
@@ -410,12 +412,21 @@ export default {
   align-items: center;
 }
 
-.avatar img {
+.avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  object-fit: cover;
   border: 3px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f6f8;
+}
+
+.avatar-initial {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #4a5568;
 }
 
 .details h4 {

@@ -418,8 +418,8 @@ const loadingPending = ref(false)
 const loadingCompleted = ref(false)
 const error = ref(null)
 
-// 咨询师ID（实际应用中应该从用户登录状态获取）
-const counselorId = ref('11001')
+// 咨询师ID（从登录信息获取）
+const counselorId = ref('')
 
 // 待填写记录
 const pendingRecords = ref([])
@@ -487,6 +487,10 @@ const completedVisiblePages = computed(() => {
 
 // 加载待填写记录
 const loadPendingRecords = async () => {
+  if (!counselorId.value) {
+    console.warn('缺少咨询师ID，无法加载待填写记录')
+    return
+  }
   try {
     loadingPending.value = true
     error.value = null
@@ -535,6 +539,10 @@ const loadPendingRecords = async () => {
 
 // 加载已填写记录
 const loadCompletedRecords = async () => {
+  if (!counselorId.value) {
+    console.warn('缺少咨询师ID，无法加载已填写记录')
+    return
+  }
   try {
     loadingCompleted.value = true
     error.value = null
@@ -719,8 +727,22 @@ const handlePendingFilterChange = () => {
 }
 
 onMounted(() => {
-  // 初始加载数据
-  refreshData()
+  const userInfoStr = localStorage.getItem('userInfo')
+  if (userInfoStr) {
+    try {
+      const userInfoData = JSON.parse(userInfoStr)
+      if (userInfoData.userId) {
+        counselorId.value = userInfoData.userId
+        refreshData()
+      } else {
+        console.warn('未找到咨询师ID，无法加载咨询记录')
+      }
+    } catch (e) {
+      console.error('解析用户信息失败:', e)
+    }
+  } else {
+    console.warn('未找到用户信息，请重新登录')
+  }
 })
 </script>
 
