@@ -41,6 +41,15 @@
           查看报告
         </router-link>
       </div>
+
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3 class="card-title">智能对话</h3>
+        <p class="card-description">与AI助手进行对话，获取心理健康建议和支持</p>
+        <router-link to="/chat" class="card-button">
+          开始对话
+        </router-link>
+      </div>
     </div>
   </div>
 </template>

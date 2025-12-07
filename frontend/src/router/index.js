@@ -49,6 +49,11 @@ const router = createRouter({
       component: () => import('../views/ReportDetail.vue'),
       props: true
     },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: () => import('../views/Chat.vue')
+    },
     // 咨询师端路由
     {
       path: '/counselor',
