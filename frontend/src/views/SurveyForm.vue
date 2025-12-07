@@ -506,6 +506,60 @@ onMounted(async () => {
     } else {
       latestAssessmentTime.value = null
     }
+
+    // 尝试从localStorage恢复草稿数据
+    try {
+      const draftDataStr = localStorage.getItem('survey_draft')
+      if (draftDataStr) {
+        const draftData = JSON.parse(draftDataStr)
+        // 验证草稿数据是否属于当前用户
+        if (draftData.studentId === studentId) {
+          console.log('恢复草稿数据:', draftData)
+          
+          // 恢复基础信息（如果是首次填写且有保存的基础信息）
+          if (draftData.isFirstFill && draftData.basicSurvey) {
+            Object.assign(basicSurvey, draftData.basicSurvey)
+          }
+          
+          // 恢复问卷答案
+          if (draftData.answers && Array.isArray(draftData.answers)) {
+            // 确保answers数组长度与questions一致
+            if (draftData.answers.length === questions.value.length) {
+              answers.value = [...draftData.answers]
+            } else {
+              // 如果长度不一致，尝试合并数据
+              const restoredAnswers = new Array(questions.value.length).fill(0)
+              draftData.answers.forEach((value, index) => {
+                if (index < restoredAnswers.length) {
+                  restoredAnswers[index] = value || 0
+                }
+              })
+              answers.value = restoredAnswers
+            }
+          }
+          
+          // 恢复当前步骤（首次填写时）
+          if (draftData.isFirstFill && draftData.currentStep) {
+            currentStep.value = draftData.currentStep
+          }
+          
+          // 恢复最新测评时间（如果有保存）
+          if (draftData.latestAssessmentTime) {
+            latestAssessmentTime.value = draftData.latestAssessmentTime
+          }
+          
+          console.log('草稿数据恢复成功')
+        } else {
+          console.log('草稿数据不属于当前用户，已忽略')
+          // 清除不属于当前用户的草稿
+          localStorage.removeItem('survey_draft')
+        }
+      }
+    } catch (draftError) {
+      console.error('恢复草稿数据失败:', draftError)
+      // 如果草稿数据格式错误，清除它
+      localStorage.removeItem('survey_draft')
+    }
   } catch (e) {
     console.error('获取问卷状态失败:', e)
     // 异常时默认视为首次，避免阻塞填写
@@ -624,7 +678,8 @@ const submitSurvey = async () => {
     
     if (response.success) {
       console.log('问卷提交结果:', response.data)
-      localStorage.removeItem('draftData')
+      // 清除草稿数据（使用正确的key）
+      localStorage.removeItem('survey_draft')
       // 显示提交成功对话框并开始倒计时
       showSuccessDialog.value = true
       startSuccessCountdown()
