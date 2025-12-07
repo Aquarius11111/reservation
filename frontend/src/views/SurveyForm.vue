@@ -259,7 +259,7 @@
     <div class="success-dialog" @click.stop>
       <div class="success-icon">✅</div>
       <h3 class="success-title">提交成功</h3>
-      <p class="success-desc">感谢您的配合，系统将根据结果提供后续服务</p>
+      <p class="success-desc">3分钟后可前往"查看报告"界面查看测评结果</p>
       <button class="success-btn" @click="goHomeNow">返回首页（{{ successCountdown }}s）</button>
     </div>
   </div>
@@ -648,48 +648,56 @@ const submitSurvey = async () => {
     return
   }
   
-  try {
-    // 从localStorage获取用户信息（统一从对象中读取）
-    const userInfo = getUserInfo()
-    if (!userInfo || !userInfo.userId) {
-      alert('未找到学生ID，请重新登录')
-      return
-    }
-    const studentId = userInfo.userId
+  // 从localStorage获取用户信息（统一从对象中读取）
+  const userInfo = getUserInfo()
+  if (!userInfo || !userInfo.userId) {
+    alert('未找到学生ID，请重新登录')
+    return
+  }
+  const studentId = userInfo.userId
 
-    // 构建提交数据
-    const submitData = apiUtils.buildSurveyData(
-      isFirstFill.value ? basicSurvey : null,
-      answers.value,
-      studentId
-    )
-    
-    console.log('提交问卷数据:', submitData)
-    
-    // 提交问卷
-    let response
+  // 构建提交数据
+  const submitData = apiUtils.buildSurveyData(
+    isFirstFill.value ? basicSurvey : null,
+    answers.value,
+    studentId
+  )
+  
+  console.log('提交问卷数据:', submitData)
+  
+  // 清除草稿数据
+  localStorage.removeItem('survey_draft')
+  
+  // 立即显示提交成功对话框并开始倒计时（不等待服务器响应）
+  showSuccessDialog.value = true
+  startSuccessCountdown()
+  
+  // 异步提交问卷（不等待响应）
+  try {
+    let responsePromise
     if (isFirstFill.value) {
-      response = await surveyAPI.submitFirstSurvey(submitData)
+      responsePromise = surveyAPI.submitFirstSurvey(submitData)
     } else {
       // 重测问卷只需要SCL-90数据
       const retestData = apiUtils.buildRetestSurveyData(answers.value, studentId)
-      response = await surveyAPI.submitRetestSurvey(retestData)
+      responsePromise = surveyAPI.submitRetestSurvey(retestData)
     }
     
-    if (response.success) {
-      console.log('问卷提交结果:', response.data)
-      // 清除草稿数据（使用正确的key）
-      localStorage.removeItem('survey_draft')
-      // 显示提交成功对话框并开始倒计时
-      showSuccessDialog.value = true
-      startSuccessCountdown()
-    } else {
-      const errorMsg = apiUtils.getErrorMessage(response)
-      alert(`问卷提交失败：${errorMsg}`)
-    }
+    // 在后台处理响应（不阻塞用户界面）
+    responsePromise
+      .then(response => {
+        if (response.success) {
+          console.log('问卷提交结果:', response.data)
+        } else {
+          const errorMsg = apiUtils.getErrorMessage(response)
+          console.error(`问卷提交失败：${errorMsg}`)
+        }
+      })
+      .catch(error => {
+        console.error('问卷提交错误:', error)
+      })
   } catch (error) {
     console.error('问卷提交错误:', error)
-    alert('问卷提交失败，请检查网络连接后重试！')
   }
 }
 
